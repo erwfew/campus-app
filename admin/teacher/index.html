@@ -1,733 +1,168 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>æ•ˆå›­é€?- æ•™å¸ˆç«?/title>
-  <link rel="stylesheet" href="https://cdn.staticfile.org/element-plus/2.4.4/index.css">
-  <script src="https://cdn.staticfile.org/vue/3.4.15/vue.global.prod.min.js"></script>
-  <script src="https://cdn.staticfile.org/element-plus/2.4.4/index.full.min.js"></script>
-  <script src="https://cdn.staticfile.org/element-plus-icons-vue/2.3.1/index.iife.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; }
-    .layout { display: flex; min-height: 100vh; }
-    .sidebar { width: 220px; background: #001529; color: #fff; flex-shrink: 0; }
-    .sidebar-logo { padding: 20px; font-size: 18px; font-weight: bold; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .sidebar-logo span { color: #409eff; }
-    .sidebar-menu { margin-top: 10px; }
-    .sidebar-menu .el-menu-item { color: rgba(255,255,255,0.7); }
-    .sidebar-menu .el-menu-item:hover, .sidebar-menu .el-menu-item.is-active { background: #1890ff; color: #fff; }
-    .main-content { flex: 1; display: flex; flex-direction: column; }
-    .top-bar { height: 56px; background: #fff; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
-    .top-bar-title { font-size: 16px; font-weight: 500; }
-    .top-bar-user { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-    .content-area { flex: 1; padding: 24px; overflow-y: auto; }
-    .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .stat-card .label { font-size: 14px; color: #999; margin-bottom: 8px; }
-    .stat-card .value { font-size: 28px; font-weight: bold; }
-    .stat-card .value.blue { color: #409eff; }
-    .stat-card .value.green { color: #67c23a; }
-    .stat-card .value.orange { color: #e6a23c; }
-    .stat-card .value.red { color: #f56c6c; }
-    .card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
-    .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-    .course-card { background: #fff; border-radius: 8px; padding: 20px; border: 1px solid #e8e8e8; cursor: pointer; transition: all 0.3s; }
-    .course-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
-    .course-card .course-name { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
-    .course-card .course-info { font-size: 13px; color: #999; line-height: 1.8; }
-    .course-card .course-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-top: 8px; }
-    .course-card .course-tag.required { background: #e6f7ff; color: #1890ff; }
-    .course-card .course-tag.elective { background: #f6ffed; color: #52c41a; }
-    .attendance-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
-    .student-card { text-align: center; padding: 12px 8px; border-radius: 8px; border: 1px solid #e8e8e8; cursor: pointer; transition: all 0.2s; }
-    .student-card:hover { border-color: #409eff; }
-    .student-card.present { background: #f0f9eb; border-color: #67c23a; }
-    .student-card.absent { background: #fef0f0; border-color: #f56c6c; }
-    .student-card.late { background: #fdf6ec; border-color: #e6a23c; }
-    .student-card.leave { background: #f4f4f5; border-color: #909399; }
-    .student-card .name { font-size: 14px; font-weight: 500; margin-top: 4px; }
-    .student-card .id { font-size: 11px; color: #999; }
-    .student-card .status-icon { font-size: 20px; }
-    .empty-state { text-align: center; padding: 60px; color: #999; }
-    .notice-item { padding: 16px; border-bottom: 1px solid #f0f0f0; }
-    .notice-item:last-child { border-bottom: none; }
-    .notice-item .title { font-weight: 500; margin-bottom: 4px; }
-    .notice-item .meta { font-size: 12px; color: #999; }
-    .status-bar { display: flex; gap: 12px; margin-bottom: 16px; }
-    .status-btn { padding: 8px 16px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer; font-size: 13px; transition: all 0.2s; }
-    .status-btn.active { border-color: currentColor; font-weight: 500; }
-    .status-btn.present { color: #67c23a; background: #f0f9eb; }
-    .status-btn.absent { color: #f56c6c; background: #fef0f0; }
-    .status-btn.late { color: #e6a23c; background: #fdf6ec; }
-    .status-btn.leave { color: #909399; background: #f4f4f5; }
-    /* ç™»å½•é¡?*/
-    .login-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    .login-box { background: #fff; border-radius: 12px; padding: 40px; width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-    .login-box h2 { text-align: center; margin-bottom: 8px; color: #333; }
-    .login-box .subtitle { text-align: center; color: #999; margin-bottom: 30px; font-size: 14px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ğ§Ô°Í¨ - ½ÌÊ¦¶Ë</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif; background: #f5f6fa; }
+.login-wrap { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.login-box { background: #fff; padding: 40px 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 360px; text-align: center; }
+.login-box h2 { font-size: 24px; color: #333; margin-bottom: 8px; }
+.login-box p { color: #999; font-size: 14px; margin-bottom: 24px; }
+.login-box input { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; margin-bottom: 14px; outline: none; transition: border 0.2s; }
+.login-box input:focus { border-color: #4361ee; }
+.login-box button { width: 100%; padding: 13px; background: linear-gradient(135deg, #4361ee, #3a56d4); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.login-box .error { color: #f44336; font-size: 13px; margin-bottom: 10px; display: none; }
+.dashboard { display: none; padding: 20px; }
+.nav { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.nav button { padding: 8px 20px; border: 1px solid #ddd; background: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; }
+.nav button.active { background: #4361ee; color: #fff; border-color: #4361ee; }
+.card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.card h3 { font-size: 16px; margin-bottom: 12px; color: #333; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat { background: #fff; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.stat .num { font-size: 28px; font-weight: bold; color: #4361ee; }
+.stat .label { font-size: 13px; color: #999; margin-top: 4px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+th { background: #f8f9fa; font-weight: 600; color: #555; }
+.logout { float: right; color: #999; cursor: pointer; font-size: 14px; }
+</style>
 </head>
 <body>
-  <div id="app">
-    <!-- ç™»å½•é¡?-->
-    <div v-if="!isLoggedIn" class="login-page">
-      <div class="login-box">
-        <h2>ğŸ« æ•ˆå›­é€?/h2>
-        <div class="subtitle">æ•™å¸ˆç«¯ç™»å½?/div>
-        <el-form :model="loginForm" @keyup.enter="handleLogin">
-          <el-form-item>
-            <el-input v-model="loginForm.username" placeholder="ç”¨æˆ·å? size="large" prefix-icon="User" />
-          </el-form-item>
-          <el-form-item>
-            <el-input v-model="loginForm.password" placeholder="å¯†ç " type="password" size="large" prefix-icon="Lock" show-password />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" size="large" style="width:100%" :loading="loginLoading" @click="handleLogin">ç™?å½?/el-button>
-          </el-form-item>
-        </el-form>
-        <div style="text-align:center;font-size:12px;color:#999;margin-top:16px;">
-          é»˜è®¤è´¦å·: teacher1 / teacher123
-        </div>
-      </div>
-    </div>
-
-    <!-- ä¸»ç•Œé?-->
-    <div v-else class="layout">
-      <!-- ä¾§è¾¹æ ?-->
-      <div class="sidebar">
-        <div class="sidebar-logo">æ•ˆå›­é€?<span>æ•™å¸ˆç«?/span></div>
-        <el-menu :default-active="currentPage" class="sidebar-menu" @select="handleMenuSelect" background-color="transparent" text-color="rgba(255,255,255,0.7)" active-text-color="#fff">
-          <el-menu-item index="dashboard"><el-icon><HomeFilled /></el-icon>å·¥ä½œå?/el-menu-item>
-          <el-menu-item index="courses"><el-icon><Reading /></el-icon>æˆ‘çš„è¯¾ç¨‹</el-menu-item>
-          <el-menu-item index="attendance"><el-icon><Check /></el-icon>è¯¾å ‚è€ƒå‹¤</el-menu-item>
-          <el-menu-item index="homework"><el-icon><EditPen /></el-icon>ä½œä¸šç®¡ç†</el-menu-item>
-          <el-menu-item index="grades"><el-icon><TrendCharts /></el-icon>æˆç»©å½•å…¥</el-menu-item>
-          <el-menu-item index="notices"><el-icon><Bell /></el-icon>è¯¾ç¨‹å…¬å‘Š</el-menu-item>
-        </el-menu>
-      </div>
-
-      <!-- ä¸»å†…å®¹åŒº -->
-      <div class="main-content">
-        <div class="top-bar">
-          <div class="top-bar-title">{{ pageTitle }}</div>
-          <div class="top-bar-user" @click="showUserMenu = !showUserMenu">
-            <el-avatar :size="32" style="background:#409eff">{{ currentUser.realName?.[0] || 'å¸? }}</el-avatar>
-            <span>{{ currentUser.realName }}</span>
-            <el-button type="danger" size="small" text @click.stop="handleLogout" style="margin-left:8px;">é€€å‡?/el-button>
-          </div>
-        </div>
-
-        <div class="content-area">
-          <!-- ===== å·¥ä½œå?===== -->
-          <template v-if="currentPage === 'dashboard'">
-            <div class="stat-cards">
-              <div class="stat-card"><div class="label">æœ¬å­¦æœŸè¯¾ç¨?/div><div class="value blue">{{ dashboard.courseCount || 0 }}</div></div>
-              <div class="stat-card"><div class="label">å­¦ç”Ÿæ€»æ•°</div><div class="value green">{{ dashboard.studentCount || 0 }}</div></div>
-              <div class="stat-card"><div class="label">ä»Šæ—¥å¾…è€ƒå‹¤</div><div class="value orange">{{ dashboard.todayClasses || 0 }}</div></div>
-              <div class="stat-card"><div class="label">å¾…æ‰¹æ”¹ä½œä¸?/div><div class="value red">{{ dashboard.pendingGrading || 0 }}</div></div>
-            </div>
-
-            <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
-              <div class="card">
-                <div class="card-title">ä»Šæ—¥è¯¾ç¨‹</div>
-                <div v-for="c in todayCourses" :key="c.id" style="display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #f0f0f0;">
-                  <div style="width:60px;text-align:center;">
-                    <div style="font-size:12px;color:#999;">{{ c.time }}</div>
-                  </div>
-                  <div style="flex:1;margin-left:16px;">
-                    <div style="font-weight:500;">{{ c.name }}</div>
-                    <div style="font-size:13px;color:#999;">{{ c.location }} Â· {{ c.studentCount }}äº?/div>
-                  </div>
-                  <el-button type="primary" size="small" @click="startAttendance(c)">è€ƒå‹¤</el-button>
-                </div>
-                <div v-if="todayCourses.length === 0" class="empty-state" style="padding:30px;">
-                  <div>ğŸ‰</div>
-                  <div>ä»Šå¤©æ²¡æœ‰è¯¾ç¨‹</div>
-                </div>
-              </div>
-
-              <div class="card">
-                <div class="card-title">æœ€è¿‘å…¬å‘?/div>
-                <div class="notice-item" v-for="n in notices.slice(0,5)" :key="n.id">
-                  <div class="title">
-                    <el-tag v-if="n.important" type="danger" size="small" style="margin-right:6px;">é‡è¦</el-tag>
-                    {{ n.title }}
-                  </div>
-                  <div class="meta">{{ n.course }} Â· {{ n.date }}</div>
-                </div>
-                <div v-if="notices.length === 0" class="empty-state" style="padding:30px;">
-                  <div>æš‚æ— å…¬å‘Š</div>
-                </div>
-              </div>
-            </div>
-          </template>
-
-          <!-- ===== æˆ‘çš„è¯¾ç¨‹ ===== -->
-          <template v-if="currentPage === 'courses'">
-            <div class="course-grid">
-              <div class="course-card" v-for="c in courses" :key="c.id" @click="selectCourse(c)">
-                <div class="course-name">{{ c.name }}</div>
-                <div class="course-info">
-                  <div>ğŸ“ {{ c.location || 'æœªæŒ‡å®? }}</div>
-                  <div>ğŸ‘¥ {{ c.studentCount }} äººé€‰è¯¾</div>
-                  <div>ğŸ“… å‘¨{{ ['ä¸€','äº?,'ä¸?,'å›?,'äº?,'å…?,'æ—?][c.weekDay] }} ç¬¬{{ c.startSection }}-{{ c.endSection }}èŠ?/div>
-                  <div>ğŸ• {{ c.startTime }} - {{ c.endTime }}</div>
-                </div>
-                <span class="course-tag" :class="c.type === 'å¿…ä¿®' ? 'required' : 'elective'">{{ c.type }}</span>
-              </div>
-            </div>
-            <div v-if="courses.length === 0" class="empty-state">
-              <div style="font-size:48px;">ğŸ“š</div>
-              <div style="margin-top:8px;">æš‚æ— è¯¾ç¨‹</div>
-            </div>
-
-            <el-dialog v-model="showCourseDetail" :title="selectedCourse?.name + ' - å­¦ç”Ÿåå•'" width="700px">
-              <el-table :data="courseStudents" stripe style="width:100%" v-loading="loadingStudents">
-                <el-table-column prop="studentId" label="å­¦å·" width="120" />
-                <el-table-column prop="name" label="å§“å" width="100" />
-                <el-table-column prop="college" label="å­¦é™¢" />
-                <el-table-column prop="attendance" label="å‡ºå‹¤ç? width="100">
-                  <template #default="scope">
-                    <el-tag :type="scope.row.attendance >= 90 ? 'success' : scope.row.attendance >= 70 ? 'warning' : 'danger'">
-                      {{ scope.row.attendance }}%
-                    </el-tag>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </el-dialog>
-          </template>
-
-          <!-- ===== è¯¾å ‚è€ƒå‹¤ ===== -->
-          <template v-if="currentPage === 'attendance'">
-            <div class="card" v-if="!activeAttendance">
-              <div class="card-title">é€‰æ‹©è¯¾ç¨‹å¼€å§‹è€ƒå‹¤</div>
-              <div v-for="c in todayCourses" :key="c.id" style="display:flex;align-items:center;padding:16px 0;border-bottom:1px solid #f0f0f0;">
-                <div style="flex:1;">
-                  <div style="font-weight:500;">{{ c.name }}</div>
-                  <div style="font-size:13px;color:#999;">{{ c.location }} Â· {{ c.time }}</div>
-                </div>
-                <el-button type="primary" @click="startAttendance(c)">å¼€å§‹è€ƒå‹¤</el-button>
-              </div>
-              <div v-if="todayCourses.length === 0" class="empty-state">
-                <div style="font-size:48px;">ğŸ“‹</div>
-                <div style="margin-top:8px;">ä»Šå¤©æ²¡æœ‰éœ€è¦è€ƒå‹¤çš„è¯¾ç¨?/div>
-              </div>
-            </div>
-
-            <template v-if="activeAttendance">
-              <div class="card">
-                <div class="card-title">
-                  {{ activeAttendance.name }} - è€ƒå‹¤
-                  <div>
-                    <el-button @click="activeAttendance = null">è¿”å›</el-button>
-                    <el-button type="primary" @click="saveAttendance" :loading="savingAttendance">ä¿å­˜è€ƒå‹¤</el-button>
-                  </div>
-                </div>
-
-                <div class="status-bar">
-                  <div class="status-btn present" :class="{active: batchStatus === 'present'}" @click="batchSetStatus('present')">âœ?å…¨éƒ¨å‡ºå‹¤</div>
-                  <div class="status-btn absent" :class="{active: batchStatus === 'absent'}" @click="batchSetStatus('absent')">â?å…¨éƒ¨ç¼ºå‹¤</div>
-                  <div style="flex:1;"></div>
-                  <div style="font-size:14px;color:#999;">
-                    å‡ºå‹¤ {{ attendanceStats.present }} Â· ç¼ºå‹¤ {{ attendanceStats.absent }} Â· è¿Ÿåˆ° {{ attendanceStats.late }} Â· è¯·å‡ {{ attendanceStats.leave }}
-                  </div>
-                </div>
-
-                <div class="attendance-grid">
-                  <div v-for="s in attendanceList" :key="s.id"
-                    class="student-card" :class="s.status"
-                    @click="cycleStatus(s)">
-                    <div class="status-icon">{{ statusIcons[s.status] }}</div>
-                    <div class="name">{{ s.name }}</div>
-                    <div class="id">{{ s.studentId }}</div>
-                  </div>
-                </div>
-              </div>
-            </template>
-          </template>
-
-          <!-- ===== ä½œä¸šç®¡ç† ===== -->
-          <template v-if="currentPage === 'homework'">
-            <div class="card">
-              <div class="card-title">
-                ä½œä¸šåˆ—è¡¨
-                <el-button type="primary" @click="showHomeworkDialog = true">å‘å¸ƒä½œä¸š</el-button>
-              </div>
-              <el-table :data="homeworkList" stripe v-loading="loadingHomework">
-                <el-table-column prop="title" label="ä½œä¸šæ ‡é¢˜" />
-                <el-table-column prop="course" label="æ‰€å±è¯¾ç¨? width="150" />
-                <el-table-column prop="deadline" label="æˆªæ­¢æ—¶é—´" width="170">
-                  <template #default="scope">
-                    {{ formatDeadline(scope.row.deadline) }}
-                  </template>
-                </el-table-column>
-                <el-table-column prop="submitted" label="å·²æäº? width="100">
-                  <template #default="scope">
-                    {{ scope.row.submitted }}/{{ scope.row.total }}
-                  </template>
-                </el-table-column>
-                <el-table-column prop="status" label="çŠ¶æ€? width="100">
-                  <template #default="scope">
-                    <el-tag :type="scope.row.status === 'active' ? 'primary' : 'info'">
-                      {{ scope.row.status === 'active' ? 'è¿›è¡Œä¸? : 'å·²æˆªæ­? }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column label="æ“ä½œ" width="120">
-                  <template #default="scope">
-                    <el-button type="text" size="small" @click="viewSubmissions(scope.row)">æŸ¥çœ‹æäº¤</el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </div>
-
-            <el-dialog v-model="showHomeworkDialog" title="å‘å¸ƒä½œä¸š" width="500px">
-              <el-form :model="newHomework" label-width="80px">
-                <el-form-item label="æ‰€å±è¯¾ç¨?>
-                  <el-select v-model="newHomework.courseId" placeholder="é€‰æ‹©è¯¾ç¨‹" style="width:100%">
-                    <el-option v-for="c in courses" :key="c.id" :label="c.name" :value="c.id" />
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="ä½œä¸šæ ‡é¢˜"><el-input v-model="newHomework.title" /></el-form-item>
-                <el-form-item label="ä½œä¸šæè¿°"><el-input v-model="newHomework.description" type="textarea" :rows="4" /></el-form-item>
-                <el-form-item label="æˆªæ­¢æ—¶é—´">
-                  <el-date-picker v-model="newHomework.deadline" type="datetime" placeholder="é€‰æ‹©æ—¶é—´" style="width:100%" />
-                </el-form-item>
-              </el-form>
-              <template #footer>
-                <el-button @click="showHomeworkDialog = false">å–æ¶ˆ</el-button>
-                <el-button type="primary" @click="publishHomework" :loading="publishingHomework">å‘å¸ƒ</el-button>
-              </template>
-            </el-dialog>
-          </template>
-
-          <!-- ===== æˆç»©å½•å…¥ ===== -->
-          <template v-if="currentPage === 'grades'">
-            <div class="card">
-              <div class="card-title">
-                æˆç»©å½•å…¥
-                <el-select v-model="gradeCourseId" placeholder="é€‰æ‹©è¯¾ç¨‹" style="width:200px;" @change="loadGrades">
-                  <el-option v-for="c in courses" :key="c.id" :label="c.name" :value="c.id" />
-                </el-select>
-              </div>
-              <el-table :data="gradeList" stripe v-loading="loadingGrades">
-                <el-table-column prop="studentId" label="å­¦å·" width="120" />
-                <el-table-column prop="name" label="å§“å" width="100" />
-                <el-table-column label="å¹³æ—¶æˆç»©" width="140">
-                  <template #default="scope">
-                    <el-input-number v-model="scope.row.usual" :min="0" :max="100" size="small" controls-position="right" />
-                  </template>
-                </el-table-column>
-                <el-table-column label="æœŸä¸­æˆç»©" width="140">
-                  <template #default="scope">
-                    <el-input-number v-model="scope.row.midterm" :min="0" :max="100" size="small" controls-position="right" />
-                  </template>
-                </el-table-column>
-                <el-table-column label="æœŸæœ«æˆç»©" width="140">
-                  <template #default="scope">
-                    <el-input-number v-model="scope.row.final" :min="0" :max="100" size="small" controls-position="right" />
-                  </template>
-                </el-table-column>
-                <el-table-column label="æ€»è¯„" width="80">
-                  <template #default="scope">
-                    <span style="font-weight:bold;">{{ calcTotal(scope.row) }}</span>
-                  </template>
-                </el-table-column>
-              </el-table>
-              <div style="margin-top:16px;text-align:right;">
-                <el-button type="primary" @click="submitGrades" :loading="submittingGrades">æäº¤æˆç»©</el-button>
-              </div>
-            </div>
-          </template>
-
-          <!-- ===== è¯¾ç¨‹å…¬å‘Š ===== -->
-          <template v-if="currentPage === 'notices'">
-            <div class="card">
-              <div class="card-title">
-                è¯¾ç¨‹å…¬å‘Š
-                <el-button type="primary" @click="showNoticeDialog = true">å‘å¸ƒå…¬å‘Š</el-button>
-              </div>
-              <div v-loading="loadingNotices">
-                <div class="notice-item" v-for="n in notices" :key="n.id" style="display:flex;align-items:center;">
-                  <div style="flex:1;">
-                    <div class="title">
-                      <el-tag v-if="n.important" type="danger" size="small" style="margin-right:8px;">é‡è¦</el-tag>
-                      {{ n.title }}
-                    </div>
-                    <div class="meta">{{ n.course }} Â· {{ n.date }}</div>
-                  </div>
-                </div>
-                <div v-if="notices.length === 0" class="empty-state">
-                  <div>æš‚æ— å…¬å‘Š</div>
-                </div>
-              </div>
-            </div>
-
-            <el-dialog v-model="showNoticeDialog" title="å‘å¸ƒå…¬å‘Š" width="500px">
-              <el-form :model="newNotice" label-width="80px">
-                <el-form-item label="æ‰€å±è¯¾ç¨?>
-                  <el-select v-model="newNotice.courseId" placeholder="é€‰æ‹©è¯¾ç¨‹" style="width:100%">
-                    <el-option label="å…¨éƒ¨è¯¾ç¨‹" :value="null" />
-                    <el-option v-for="c in courses" :key="c.id" :label="c.name" :value="c.id" />
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="å…¬å‘Šæ ‡é¢˜"><el-input v-model="newNotice.title" /></el-form-item>
-                <el-form-item label="å…¬å‘Šå†…å®¹"><el-input v-model="newNotice.content" type="textarea" :rows="4" /></el-form-item>
-                <el-form-item label="æ˜¯å¦é‡è¦">
-                  <el-switch v-model="newNotice.important" />
-                </el-form-item>
-              </el-form>
-              <template #footer>
-                <el-button @click="showNoticeDialog = false">å–æ¶ˆ</el-button>
-                <el-button type="primary" @click="publishNotice" :loading="publishingNotice">å‘å¸ƒ</el-button>
-              </template>
-            </el-dialog>
-          </template>
-        </div>
-      </div>
-    </div>
+<div class="login-wrap" id="loginPage">
+  <div class="login-box">
+    <h2>?? Ğ§Ô°Í¨½ÌÊ¦¶Ë</h2>
+    <p>ÇëÊäÈëÕËºÅÃÜÂëµÇÂ¼</p>
+    <div class="error" id="loginError"></div>
+    <input type="text" id="username" placeholder="ÓÃ»§Ãû" value="teacher1">
+    <input type="password" id="password" placeholder="ÃÜÂë" value="teacher123">
+    <button onclick="login()">µÇ Â¼</button>
   </div>
+</div>
 
-  <script>
-    const { createApp, ref, computed, reactive, onMounted } = Vue
+<div class="dashboard" id="dashboardPage">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2>?? Ğ§Ô°Í¨ ¡¤ ½ÌÊ¦¹¤×÷Ì¨</h2>
+    <span class="logout" onclick="logout()">ÍË³öµÇÂ¼</span>
+  </div>
+  <div class="stats" id="statsArea"></div>
+  <div class="nav">
+    <button class="active" onclick="showPage('courses',this)">ÎÒµÄ¿Î³Ì</button>
+    <button onclick="showPage('homework',this)">×÷Òµ¹ÜÀí</button>
+    <button onclick="showPage('grades',this)">³É¼¨Â¼Èë</button>
+    <button onclick="showPage('notices',this)">¿Î³Ì¹«¸æ</button>
+  </div>
+  <div id="contentArea"></div>
+</div>
 
-    // API å·¥å…·å‡½æ•°
-    const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3000/api' : location.origin + '/api';
-    
-    function getToken() { return localStorage.getItem('token'); }
-    
-    async function api(path, options = {}) {
-      const headers = { 'Content-Type': 'application/json' };
-      const token = getToken();
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      
-      const resp = await fetch(API_BASE + path, {
-        ...options,
-        headers: { ...headers, ...options.headers }
-      });
-      const data = await resp.json();
-      if (!data.success) {
-        throw new Error(data.error?.message || 'è¯·æ±‚å¤±è´¥');
-      }
-      return data.data;
+<script>
+const API = location.origin + '/api';
+let token = localStorage.getItem('token');
+
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + path, { ...opts, headers });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error?.message || 'ÇëÇóÊ§°Ü');
+  return json.data;
+}
+
+async function login() {
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  try {
+    const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
+    token = data.token;
+    localStorage.setItem('token', token);
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('dashboardPage').style.display = 'block';
+    loadDashboard();
+  } catch (e) {
+    const err = document.getElementById('loginError');
+    err.textContent = e.message;
+    err.style.display = 'block';
+  }
+}
+
+function logout() {
+  localStorage.removeItem('token');
+  token = null;
+  location.reload();
+}
+
+async function loadDashboard() {
+  try {
+    const d = await api('/teacher/dashboard');
+    document.getElementById('statsArea').innerHTML =
+      '<div class="stat"><div class="num">' + d.courseCount + '</div><div class="label">¿Î³ÌÊı</div></div>' +
+      '<div class="stat"><div class="num">' + d.studentCount + '</div><div class="label">Ñ§ÉúÊı</div></div>' +
+      '<div class="stat"><div class="num">' + d.todayClasses + '</div><div class="label">½ñÈÕ¿ÎÊ±</div></div>' +
+      '<div class="stat"><div class="num">' + d.pendingGrading + '</div><div class="label">´ıÅú¸Ä</div></div>';
+    showPage('courses');
+  } catch (e) {
+    if (e.message.includes('token') || e.message.includes('ÈÏÖ¤')) logout();
+  }
+}
+
+async function showPage(page, btn) {
+  if (btn) {
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  const area = document.getElementById('contentArea');
+  area.innerHTML = '<div class="card"><p style="color:#999;">¼ÓÔØÖĞ...</p></div>';
+  try {
+    if (page === 'courses') {
+      const courses = await api('/teacher/courses');
+      area.innerHTML = '<div class="card"><h3>ÎÒµÄ¿Î³Ì</h3><table><tr><th>¿Î³ÌÃû³Æ</th><th>ÉÏ¿ÎÊ±¼ä</th><th>½ÌÊÒ</th><th>Ñ§ÉúÊı</th></tr>' +
+        courses.map(c => '<tr><td>' + c.name + '</td><td>ÖÜ' + ['Ò»','¶ş','Èı','ËÄ','Îå','Áù','ÈÕ'][c.weekDay] + ' µÚ' + c.startSection + '-' + c.endSection + '½Ú</td><td>' + c.location + '</td><td>' + c.studentCount + 'ÈË</td></tr>').join('') +
+        '</table></div>';
+    } else if (page === 'homework') {
+      const data = await api('/teacher/homework');
+      area.innerHTML = '<div class="card"><h3>×÷Òµ¹ÜÀí</h3><table><tr><th>×÷ÒµÃû³Æ</th><th>¿Î³Ì</th><th>½ØÖ¹Ê±¼ä</th><th>Ìá½»ÂÊ</th></tr>' +
+        (data || []).map(h => '<tr><td>' + h.title + '</td><td>' + h.course + '</td><td>' + (h.deadline || '-') + '</td><td>' + h.submitted + '/' + h.total + '</td></tr>').join('') +
+        '</table></div>';
+    } else if (page === 'grades') {
+      const courses = await api('/teacher/courses');
+      area.innerHTML = '<div class="card"><h3>³É¼¨Â¼Èë</h3><p style="color:#999;margin-bottom:12px;">Ñ¡Ôñ¿Î³Ì²é¿´³É¼¨</p><table><tr><th>¿Î³ÌÃû³Æ</th><th>Ñ§ÉúÊı</th><th>²Ù×÷</th></tr>' +
+        courses.map(c => '<tr><td>' + c.name + '</td><td>' + c.studentCount + 'ÈË</td><td><button onclick="showGrades(' + c.id + ')" style="padding:4px 12px;background:#4361ee;color:#fff;border:none;border-radius:6px;cursor:pointer;">²é¿´</button></td></tr>').join('') +
+        '</table></div>';
+    } else if (page === 'notices') {
+      const notices = await api('/teacher/notices');
+      area.innerHTML = '<div class="card"><h3>¿Î³Ì¹«¸æ</h3>' +
+        (notices.length === 0 ? '<p style="color:#999;">ÔİÎŞ¹«¸æ</p>' :
+        '<table><tr><th>±êÌâ</th><th>¿Î³Ì</th><th>ÈÕÆÚ</th></tr>' +
+        notices.map(n => '<tr><td>' + (n.important ? '?? ' : '') + n.title + '</td><td>' + n.course + '</td><td>' + n.date + '</td></tr>').join('') + '</table>') +
+        '</div>';
     }
+  } catch (e) {
+    area.innerHTML = '<div class="card"><p style="color:#f44336;">¼ÓÔØÊ§°Ü: ' + e.message + '</p></div>';
+  }
+}
 
-    const app = createApp({
-      setup() {
-        // ç™»å½•
-        const isLoggedIn = ref(!!getToken());
-        const loginLoading = ref(false);
-        const loginForm = reactive({ username: 'teacher1', password: 'teacher123' });
-        const currentUser = reactive({});
+async function showGrades(courseId) {
+  const area = document.getElementById('contentArea');
+  area.innerHTML = '<div class="card"><p>¼ÓÔØÖĞ...</p></div>';
+  try {
+    const grades = await api('/teacher/grades?courseId=' + courseId);
+    area.innerHTML = '<div class="card"><h3>³É¼¨ÁĞ±í</h3><button onclick="showPage(\'grades\')" style="float:right;padding:4px 12px;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;margin-bottom:10px;">·µ»Ø</button><table><tr><th>Ñ§ºÅ</th><th>ĞÕÃû</th><th>Æ½Ê±</th><th>ÆÚÖĞ</th><th>ÆÚÄ©</th><th>×ÜÆÀ</th></tr>' +
+      grades.map(g => '<tr><td>' + g.studentId + '</td><td>' + g.name + '</td><td>' + g.usual + '</td><td>' + g.midterm + '</td><td>' + g.final + '</td><td><b>' + g.total + '</b></td></tr>').join('') +
+      '</table></div>';
+  } catch (e) {
+    area.innerHTML = '<div class="card"><p style="color:#f44336;">' + e.message + '</p></div>';
+  }
+}
 
-        const handleLogin = async () => {
-          loginLoading.value = true;
-          try {
-            const data = await api('/auth/login', {
-              method: 'POST',
-              body: JSON.stringify(loginForm)
-            });
-            localStorage.setItem('token', data.token);
-            Object.assign(currentUser, data.user);
-            isLoggedIn.value = true;
-            ElementPlus.ElMessage.success('ç™»å½•æˆåŠŸï¼?);
-            loadDashboard();
-            loadCourses();
-            loadNotices();
-          } catch (e) {
-            ElementPlus.ElMessage.error(e.message);
-          } finally {
-            loginLoading.value = false;
-          }
-        };
-
-        const handleLogout = () => {
-          localStorage.removeItem('token');
-          isLoggedIn.value = false;
-          Object.keys(currentUser).forEach(k => delete currentUser[k]);
-        };
-
-        // é¡µé¢
-        const currentPage = ref('dashboard');
-        const pageTitle = computed(() => {
-          const map = { dashboard: 'å·¥ä½œå?, courses: 'æˆ‘çš„è¯¾ç¨‹', attendance: 'è¯¾å ‚è€ƒå‹¤', homework: 'ä½œä¸šç®¡ç†', grades: 'æˆç»©å½•å…¥', notices: 'è¯¾ç¨‹å…¬å‘Š' }
-          return map[currentPage.value] || 'å·¥ä½œå?
-        });
-        const handleMenuSelect = (index) => { currentPage.value = index };
-
-        // å·¥ä½œå°æ•°æ?        const dashboard = reactive({});
-        const todayCourses = ref([]);
-        
-        const loadDashboard = async () => {
-          try {
-            const data = await api('/teacher/dashboard');
-            Object.assign(dashboard, data);
-          } catch (e) { console.error('åŠ è½½å·¥ä½œå°å¤±è´?', e); }
-        };
-
-        const loadTodayCourses = async () => {
-          try {
-            todayCourses.value = await api('/teacher/today-courses');
-          } catch (e) { console.error('åŠ è½½ä»Šæ—¥è¯¾ç¨‹å¤±è´¥:', e); }
-        };
-
-        // è¯¾ç¨‹
-        const courses = ref([]);
-        const loadCourses = async () => {
-          try {
-            courses.value = await api('/teacher/courses');
-            loadTodayCourses();
-          } catch (e) { console.error('åŠ è½½è¯¾ç¨‹å¤±è´¥:', e); }
-        };
-
-        const showCourseDetail = ref(false);
-        const selectedCourse = ref(null);
-        const courseStudents = ref([]);
-        const loadingStudents = ref(false);
-
-        const selectCourse = async (c) => {
-          selectedCourse.value = c;
-          showCourseDetail.value = true;
-          loadingStudents.value = true;
-          try {
-            courseStudents.value = await api(`/teacher/courses/${c.id}/students`);
-          } catch (e) {
-            ElementPlus.ElMessage.error('åŠ è½½å­¦ç”Ÿåå•å¤±è´¥');
-          } finally {
-            loadingStudents.value = false;
-          }
-        };
-
-        // è€ƒå‹¤
-        const activeAttendance = ref(null);
-        const attendanceList = ref([]);
-        const batchStatus = ref('present');
-        const savingAttendance = ref(false);
-        const statusIcons = { present: 'âœ?, absent: 'â?, late: 'â?, leave: 'ğŸ“‹' };
-
-        const attendanceStats = computed(() => {
-          const stats = { present: 0, absent: 0, late: 0, leave: 0 };
-          attendanceList.value.forEach(s => { stats[s.status]++ });
-          return stats;
-        });
-
-        const startAttendance = async (course) => {
-          activeAttendance.value = course;
-          currentPage.value = 'attendance';
-          try {
-            const students = await api(`/teacher/courses/${course.id}/students`);
-            attendanceList.value = students.map(s => ({ ...s, status: 'present' }));
-          } catch (e) {
-            // å¦‚æœAPIå¤±è´¥ï¼Œä½¿ç”¨æœ¬åœ°ç”Ÿæˆ?            attendanceList.value = generateStudents(course.studentCount);
-          }
-        };
-
-        const generateStudents = (count) => {
-          const surnames = ['å¼?,'æ?,'ç?,'åˆ?,'é™?,'æ?,'èµ?,'é»?,'å‘?,'å?,'å¾?,'å­?];
-          const names = ['ä¼?,'èŠ?,'å¨?,'ç§€è‹?,'æ•?,'é?,'ä¸?,'å¼?,'ç£?,'å†?,'æ´?,'å‹?];
-          return Array.from({ length: count }, (_, i) => ({
-            id: i + 1,
-            studentId: '2023' + String(i + 1).padStart(4, '0'),
-            name: surnames[i % surnames.length] + names[i % names.length],
-            status: 'present'
-          }));
-        };
-
-        const cycleStatus = (student) => {
-          const order = ['present', 'absent', 'late', 'leave'];
-          const idx = order.indexOf(student.status);
-          student.status = order[(idx + 1) % 4];
-        };
-
-        const batchSetStatus = (status) => {
-          batchStatus.value = status;
-          attendanceList.value.forEach(s => s.status = status);
-        };
-
-        const saveAttendance = async () => {
-          savingAttendance.value = true;
-          try {
-            const today = new Date().toISOString().slice(0, 10);
-            await api('/teacher/attendance', {
-              method: 'POST',
-              body: JSON.stringify({
-                courseId: activeAttendance.value.id,
-                date: today,
-                records: attendanceList.value.map(s => ({
-                  studentId: s.id,
-                  status: s.status
-                }))
-              })
-            });
-            ElementPlus.ElMessage.success('è€ƒå‹¤å·²ä¿å­˜ï¼');
-            activeAttendance.value = null;
-            loadDashboard();
-          } catch (e) {
-            ElementPlus.ElMessage.error('ä¿å­˜å¤±è´¥: ' + e.message);
-          } finally {
-            savingAttendance.value = false;
-          }
-        };
-
-        // ä½œä¸š
-        const showHomeworkDialog = ref(false);
-        const homeworkList = ref([]);
-        const loadingHomework = ref(false);
-        const publishingHomework = ref(false);
-        const newHomework = reactive({ courseId: null, title: '', description: '', deadline: '' });
-
-        const loadHomework = async () => {
-          loadingHomework.value = true;
-          try {
-            homeworkList.value = await api('/teacher/homework');
-          } catch (e) { console.error('åŠ è½½ä½œä¸šå¤±è´¥:', e); }
-          finally { loadingHomework.value = false; }
-        };
-
-        const publishHomework = async () => {
-          if (!newHomework.courseId || !newHomework.title) {
-            return ElementPlus.ElMessage.warning('è¯·å¡«å†™è¯¾ç¨‹å’Œæ ‡é¢˜');
-          }
-          publishingHomework.value = true;
-          try {
-            await api('/teacher/homework', {
-              method: 'POST',
-              body: JSON.stringify(newHomework)
-            });
-            ElementPlus.ElMessage.success('ä½œä¸šå·²å‘å¸ƒï¼');
-            showHomeworkDialog.value = false;
-            Object.assign(newHomework, { courseId: null, title: '', description: '', deadline: '' });
-            loadHomework();
-          } catch (e) {
-            ElementPlus.ElMessage.error('å‘å¸ƒå¤±è´¥: ' + e.message);
-          } finally {
-            publishingHomework.value = false;
-          }
-        };
-
-        const viewSubmissions = (hw) => {
-          ElementPlus.ElMessage.info(`æŸ¥çœ‹ã€?{hw.title}ã€çš„ ${hw.submitted} ä»½æäº¤`);
-        };
-
-        const formatDeadline = (d) => {
-          if (!d) return 'æœªè®¾ç½?;
-          return new Date(d).toLocaleString('zh-CN');
-        };
-
-        // æˆç»©
-        const gradeCourseId = ref(null);
-        const gradeList = ref([]);
-        const loadingGrades = ref(false);
-        const submittingGrades = ref(false);
-
-        const loadGrades = async () => {
-          if (!gradeCourseId.value) return;
-          loadingGrades.value = true;
-          try {
-            gradeList.value = await api(`/teacher/grades?courseId=${gradeCourseId.value}`);
-          } catch (e) { ElementPlus.ElMessage.error('åŠ è½½æˆç»©å¤±è´¥'); }
-          finally { loadingGrades.value = false; }
-        };
-
-        const calcTotal = (row) => {
-          if (!row.usual && !row.midterm && !row.final) return '-';
-          return Math.round((row.usual || 0) * 0.3 + (row.midterm || 0) * 0.3 + (row.final || 0) * 0.4);
-        };
-
-        const submitGrades = async () => {
-          submittingGrades.value = true;
-          try {
-            await api('/teacher/grades', {
-              method: 'POST',
-              body: JSON.stringify({
-                courseId: gradeCourseId.value,
-                grades: gradeList.value.map(g => ({
-                  studentId: g.id,
-                  usual: g.usual,
-                  midterm: g.midterm,
-                  final: g.final
-                }))
-              })
-            });
-            ElementPlus.ElMessage.success('æˆç»©å·²æäº¤ï¼');
-          } catch (e) {
-            ElementPlus.ElMessage.error('æäº¤å¤±è´¥: ' + e.message);
-          } finally { submittingGrades.value = false; }
-        };
-
-        // å…¬å‘Š
-        const showNoticeDialog = ref(false);
-        const notices = ref([]);
-        const loadingNotices = ref(false);
-        const publishingNotice = ref(false);
-        const newNotice = reactive({ courseId: null, title: '', content: '', important: false });
-
-        const loadNotices = async () => {
-          loadingNotices.value = true;
-          try {
-            notices.value = await api('/teacher/notices');
-          } catch (e) { console.error('åŠ è½½å…¬å‘Šå¤±è´¥:', e); }
-          finally { loadingNotices.value = false; }
-        };
-
-        const publishNotice = async () => {
-          if (!newNotice.title) {
-            return ElementPlus.ElMessage.warning('è¯·å¡«å†™å…¬å‘Šæ ‡é¢?);
-          }
-          publishingNotice.value = true;
-          try {
-            await api('/teacher/notices', {
-              method: 'POST',
-              body: JSON.stringify(newNotice)
-            });
-            ElementPlus.ElMessage.success('å…¬å‘Šå·²å‘å¸ƒï¼');
-            showNoticeDialog.value = false;
-            Object.assign(newNotice, { courseId: null, title: '', content: '', important: false });
-            loadNotices();
-          } catch (e) {
-            ElementPlus.ElMessage.error('å‘å¸ƒå¤±è´¥: ' + e.message);
-          } finally { publishingNotice.value = false; }
-        };
-
-        // åˆå§‹åŒ?        onMounted(async () => {
-          if (isLoggedIn.value) {
-            try {
-              const user = await api('/auth/me');
-              Object.assign(currentUser, user);
-              loadDashboard();
-              loadCourses();
-              loadNotices();
-              loadHomework();
-            } catch (e) {
-              // token è¿‡æœŸ
-              handleLogout();
-            }
-          }
-        });
-
-        return {
-          isLoggedIn, loginForm, loginLoading, handleLogin, handleLogout, currentUser,
-          currentPage, pageTitle, handleMenuSelect,
-          dashboard, todayCourses,
-          courses, showCourseDetail, selectedCourse, courseStudents, loadingStudents, selectCourse,
-          activeAttendance, attendanceList, batchStatus, statusIcons, attendanceStats, savingAttendance,
-          startAttendance, cycleStatus, batchSetStatus, saveAttendance,
-          showHomeworkDialog, homeworkList, loadingHomework, publishingHomework, newHomework,
-          loadHomework, publishHomework, viewSubmissions, formatDeadline,
-          gradeCourseId, gradeList, loadingGrades, submittingGrades, loadGrades, calcTotal, submitGrades,
-          showNoticeDialog, notices, loadingNotices, publishingNotice, newNotice, loadNotices, publishNotice,
-        }
-      }
-    });
-
-    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-      app.component(key, component);
-    }
-    app.use(ElementPlus);
-    app.mount('#app');
-  </script>
+// ×Ô¶¯µÇÂ¼
+if (token) {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('dashboardPage').style.display = 'block';
+  loadDashboard();
+}
+</script>
 </body>
 </html>

@@ -1,540 +1,146 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>鏁堝洯閫?- 瀛︽牎绠＄悊绔?/title>
-  <link rel="stylesheet" href="https://cdn.staticfile.org/element-plus/2.4.4/index.css">
-  <script src="https://cdn.staticfile.org/vue/3.4.15/vue.global.prod.min.js"></script>
-  <script src="https://cdn.staticfile.org/element-plus/2.4.4/index.full.min.js"></script>
-  <script src="https://cdn.staticfile.org/element-plus-icons-vue/2.3.1/index.iife.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; }
-    .layout { display: flex; min-height: 100vh; }
-    .sidebar { width: 220px; background: #001529; color: #fff; flex-shrink: 0; }
-    .sidebar-logo { padding: 20px; font-size: 18px; font-weight: bold; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .sidebar-logo span { color: #f5222d; }
-    .sidebar-menu { margin-top: 10px; }
-    .sidebar-menu .el-menu-item { color: rgba(255,255,255,0.7); }
-    .sidebar-menu .el-menu-item:hover, .sidebar-menu .el-menu-item.is-active { background: #f5222d; color: #fff; }
-    .main-content { flex: 1; display: flex; flex-direction: column; }
-    .top-bar { height: 56px; background: #fff; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
-    .top-bar-title { font-size: 16px; font-weight: 500; }
-    .top-bar-user { display: flex; align-items: center; gap: 8px; }
-    .content-area { flex: 1; padding: 24px; overflow-y: auto; }
-    .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .stat-card .label { font-size: 14px; color: #999; margin-bottom: 8px; }
-    .stat-card .value { font-size: 28px; font-weight: bold; }
-    .stat-card .value.blue { color: #409eff; }
-    .stat-card .value.green { color: #67c23a; }
-    .stat-card .value.orange { color: #e6a23c; }
-    .stat-card .value.red { color: #f56c6c; }
-    .card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
-    .login-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #f5222d 0%, #fa541c 100%); }
-    .login-box { background: #fff; border-radius: 12px; padding: 40px; width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-    .login-box h2 { text-align: center; margin-bottom: 8px; color: #333; }
-    .login-box .subtitle { text-align: center; color: #999; margin-bottom: 30px; font-size: 14px; }
-    .notice-item { padding: 16px; border-bottom: 1px solid #f0f0f0; }
-    .notice-item:last-child { border-bottom: none; }
-    .notice-item .title { font-weight: 500; margin-bottom: 4px; }
-    .notice-item .meta { font-size: 12px; color: #999; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>效园通 - 管理端</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif; background: #f5f6fa; }
+.login-wrap { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.login-box { background: #fff; padding: 40px 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 360px; text-align: center; }
+.login-box h2 { font-size: 24px; color: #333; margin-bottom: 8px; }
+.login-box p { color: #999; font-size: 14px; margin-bottom: 24px; }
+.login-box input { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; margin-bottom: 14px; outline: none; }
+.login-box input:focus { border-color: #4361ee; }
+.login-box button { width: 100%; padding: 13px; background: linear-gradient(135deg, #4361ee, #3a56d4); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.login-box .error { color: #f44336; font-size: 13px; margin-bottom: 10px; display: none; }
+.dashboard { display: none; padding: 20px; }
+.nav { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.nav button { padding: 8px 20px; border: 1px solid #ddd; background: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; }
+.nav button.active { background: #4361ee; color: #fff; border-color: #4361ee; }
+.card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.card h3 { font-size: 16px; margin-bottom: 12px; color: #333; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat { background: #fff; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.stat .num { font-size: 28px; font-weight: bold; color: #4361ee; }
+.stat .label { font-size: 13px; color: #999; margin-top: 4px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+th { background: #f8f9fa; font-weight: 600; color: #555; }
+.logout { float: right; color: #999; cursor: pointer; font-size: 14px; }
+input.search { padding: 8px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 12px; width: 200px; }
+button.danger { background: #f44336; color: #fff; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+button.primary { background: #4361ee; color: #fff; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+</style>
 </head>
 <body>
-  <div id="app">
-    <!-- 鐧诲綍椤?-->
-    <div v-if="!isLoggedIn" class="login-page">
-      <div class="login-box">
-        <h2>馃彨 鏁堝洯閫?/h2>
-        <div class="subtitle">瀛︽牎绠＄悊绔櫥褰?/div>
-        <el-form :model="loginForm" @keyup.enter="handleLogin">
-          <el-form-item>
-            <el-input v-model="loginForm.username" placeholder="绠＄悊鍛樿处鍙? size="large" prefix-icon="User" />
-          </el-form-item>
-          <el-form-item>
-            <el-input v-model="loginForm.password" placeholder="瀵嗙爜" type="password" size="large" prefix-icon="Lock" show-password />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="danger" size="large" style="width:100%" :loading="loginLoading" @click="handleLogin">鐧?褰?/el-button>
-          </el-form-item>
-        </el-form>
-        <div style="text-align:center;font-size:12px;color:#999;margin-top:16px;">
-          榛樿璐﹀彿: admin / admin123
-        </div>
-      </div>
-    </div>
-
-    <!-- 涓荤晫闈?-->
-    <div v-else class="layout">
-      <div class="sidebar">
-        <div class="sidebar-logo">鏁堝洯閫?<span>绠＄悊绔?/span></div>
-        <el-menu :default-active="currentPage" class="sidebar-menu" @select="handleMenuSelect" background-color="transparent" text-color="rgba(255,255,255,0.7)" active-text-color="#fff">
-          <el-menu-item index="dashboard"><el-icon><DataAnalysis /></el-icon>鏁版嵁姒傝</el-menu-item>
-          <el-menu-item index="teachers"><el-icon><User /></el-icon>鏁欏笀绠＄悊</el-menu-item>
-          <el-menu-item index="students"><el-icon><UserFilled /></el-icon>瀛︾敓绠＄悊</el-menu-item>
-          <el-menu-item index="courses"><el-icon><Reading /></el-icon>璇剧▼绠＄悊</el-menu-item>
-          <el-menu-item index="notices"><el-icon><Bell /></el-icon>鍏ㄦ牎鍏憡</el-menu-item>
-        </el-menu>
-      </div>
-
-      <div class="main-content">
-        <div class="top-bar">
-          <div class="top-bar-title">{{ pageTitle }}</div>
-          <div class="top-bar-user">
-            <el-avatar :size="32" style="background:#f5222d">绠?/el-avatar>
-            <span>{{ currentUser.realName }}</span>
-            <el-button type="info" size="small" text @click="handleLogout" style="margin-left:8px;">閫�鍑?/el-button>
-          </div>
-        </div>
-
-        <div class="content-area">
-          <!-- 鏁版嵁姒傝 -->
-          <template v-if="currentPage === 'dashboard'">
-            <div class="stat-cards">
-              <div class="stat-card"><div class="label">鏁欏笀鎬绘暟</div><div class="value blue">{{ dashStats.teachers || 0 }}</div></div>
-              <div class="stat-card"><div class="label">瀛︾敓鎬绘暟</div><div class="value green">{{ dashStats.students || 0 }}</div></div>
-              <div class="stat-card"><div class="label">娲昏穬璇剧▼</div><div class="value orange">{{ dashStats.courses || 0 }}</div></div>
-              <div class="stat-card"><div class="label">鍏ㄦ牎鍏憡</div><div class="value red">{{ dashStats.activeNotices || 0 }}</div></div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-              <div class="card">
-                <div class="card-title">鍚勫闄㈣绋嬪垎甯?/div>
-                <div v-for="c in collegeStats" :key="c.college" style="display:flex;align-items:center;padding:8px 0;">
-                  <span style="width:120px;font-size:14px;">{{ c.college }}</span>
-                  <div style="flex:1;margin:0 12px;">
-                    <div style="background:#f0f2f5;border-radius:4px;height:20px;overflow:hidden;">
-                      <div :style="{width: (c.count / maxCollegeCount * 100) + '%', background:'#f5222d', height:'100%', borderRadius:'4px', transition:'width 0.5s'}"></div>
-                    </div>
-                  </div>
-                  <span style="font-size:14px;font-weight:600;color:#f5222d;">{{ c.count }}</span>
-                </div>
-                <div v-if="collegeStats.length === 0" class="empty-state" style="padding:30px;">鏆傛棤鏁版嵁</div>
-              </div>
-              <div class="card">
-                <div class="card-title">鏈�杩?澶╄�冨嫟姒傝</div>
-                <div v-for="a in attendanceStats" :key="a.date" style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;">
-                  <span style="width:80px;font-size:14px;">{{ a.date }}</span>
-                  <div style="flex:1;display:flex;gap:8px;font-size:13px;">
-                    <span style="color:#67c23a;">鉁厈{ a.present }}</span>
-                    <span style="color:#f56c6c;">鉂寋{ a.absent }}</span>
-                    <span style="color:#e6a23c;">鈴皗{ a.late }}</span>
-                    <span style="color:#909399;">馃搵{{ a.leave }}</span>
-                  </div>
-                </div>
-                <div v-if="attendanceStats.length === 0" class="empty-state" style="padding:30px;">鏆傛棤鑰冨嫟鏁版嵁</div>
-              </div>
-            </div>
-          </template>
-
-          <!-- 鏁欏笀绠＄悊 -->
-          <template v-if="currentPage === 'teachers'">
-            <div class="card">
-              <div class="card-title">
-                鏁欏笀绠＄悊
-                <el-button type="danger" size="small" @click="showUserDialog('teacher')">+ 娣诲姞鏁欏笀</el-button>
-              </div>
-              <div style="margin-bottom:16px;">
-                <el-input v-model="teacherSearch" placeholder="鎼滅储鏁欏笀濮撳悕/鐢ㄦ埛鍚? style="width:250px;" @input="loadTeachers" clearable>
-                  <template #prefix><el-icon><Search /></el-icon></template>
-                </el-input>
-              </div>
-              <el-table :data="teachers" stripe v-loading="loadingTeachers">
-                <el-table-column prop="username" label="鐢ㄦ埛鍚? width="120" />
-                <el-table-column prop="realName" label="濮撳悕" width="100" />
-                <el-table-column prop="college" label="瀛﹂櫌" />
-                <el-table-column prop="phone" label="鎵嬫満鍙? width="130" />
-                <el-table-column prop="email" label="閭" width="180" />
-                <el-table-column prop="createdAt" label="鍒涘缓鏃堕棿" width="170">
-                  <template #default="scope">{{ formatDate(scope.row.createdAt) }}</template>
-                </el-table-column>
-                <el-table-column label="鎿嶄綔" width="150">
-                  <template #default="scope">
-                    <el-button type="text" size="small" @click="editUser(scope.row)">缂栬緫</el-button>
-                    <el-button type="text" size="small" style="color:#f56c6c;" @click="deleteUser(scope.row)">鍒犻櫎</el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </div>
-          </template>
-
-          <!-- 瀛︾敓绠＄悊 -->
-          <template v-if="currentPage === 'students'">
-            <div class="card">
-              <div class="card-title">
-                瀛︾敓绠＄悊
-                <el-button type="danger" size="small" @click="showUserDialog('student')">+ 娣诲姞瀛︾敓</el-button>
-              </div>
-              <div style="margin-bottom:16px;display:flex;gap:12px;">
-                <el-input v-model="studentSearch" placeholder="鎼滅储濮撳悕/瀛﹀彿" style="width:250px;" @input="loadStudents" clearable>
-                  <template #prefix><el-icon><Search /></el-icon></template>
-                </el-input>
-              </div>
-              <el-table :data="students" stripe v-loading="loadingStudents">
-                <el-table-column prop="studentId" label="瀛﹀彿" width="120" />
-                <el-table-column prop="realName" label="濮撳悕" width="100" />
-                <el-table-column prop="college" label="瀛﹂櫌" />
-                <el-table-column prop="username" label="璐﹀彿" width="120" />
-                <el-table-column prop="createdAt" label="鍒涘缓鏃堕棿" width="170">
-                  <template #default="scope">{{ formatDate(scope.row.createdAt) }}</template>
-                </el-table-column>
-                <el-table-column label="鎿嶄綔" width="150">
-                  <template #default="scope">
-                    <el-button type="text" size="small" @click="editUser(scope.row)">缂栬緫</el-button>
-                    <el-button type="text" size="small" style="color:#f56c6c;" @click="deleteUser(scope.row)">鍒犻櫎</el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
-              <div style="margin-top:16px;text-align:center;">
-                <el-pagination background layout="prev, pager, next" :total="studentTotal" :page-size="20" v-model:current-page="studentPage" @current-change="loadStudents" />
-              </div>
-            </div>
-          </template>
-
-          <!-- 璇剧▼绠＄悊 -->
-          <template v-if="currentPage === 'courses'">
-            <div class="card">
-              <div class="card-title">
-                璇剧▼绠＄悊
-                <el-button type="danger" size="small" @click="showCourseDialog = true">+ 鍒涘缓璇剧▼</el-button>
-              </div>
-              <el-table :data="allCourses" stripe v-loading="loadingCourses">
-                <el-table-column prop="name" label="璇剧▼鍚嶇О" />
-                <el-table-column prop="teacherName" label="鎺堣鏁欏笀" width="100" />
-                <el-table-column prop="type" label="绫诲瀷" width="80">
-                  <template #default="scope">
-                    <el-tag :type="scope.row.type === '蹇呬慨' ? 'danger' : 'success'" size="small">{{ scope.row.type }}</el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="studentCount" label="閫夎浜烘暟" width="90" />
-                <el-table-column prop="location" label="鏁欏" width="120" />
-                <el-table-column prop="semester" label="瀛︽湡" width="100" />
-                <el-table-column label="鎿嶄綔" width="150">
-                  <template #default="scope">
-                    <el-button type="text" size="small" @click="archiveCourse(scope.row)">褰掓。</el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </div>
-
-            <el-dialog v-model="showCourseDialog" title="鍒涘缓璇剧▼" width="500px">
-              <el-form :model="newCourse" label-width="80px">
-                <el-form-item label="璇剧▼鍚嶇О"><el-input v-model="newCourse.name" /></el-form-item>
-                <el-form-item label="鎺堣鏁欏笀">
-                  <el-select v-model="newCourse.teacherId" placeholder="閫夋嫨鏁欏笀" style="width:100%">
-                    <el-option v-for="t in teachers" :key="t.id" :label="t.realName" :value="t.id" />
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="鏁欏"><el-input v-model="newCourse.location" /></el-form-item>
-                <el-form-item label="绫诲瀷">
-                  <el-select v-model="newCourse.type" style="width:100%">
-                    <el-option label="蹇呬慨" value="蹇呬慨" />
-                    <el-option label="閫変慨" value="閫変慨" />
-                    <el-option label="鍏�? value="鍏�? />
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="瀛︽湡"><el-input v-model="newCourse.semester" placeholder="濡?2025-1" /></el-form-item>
-                <el-form-item label="瀛﹂櫌"><el-input v-model="newCourse.college" /></el-form-item>
-              </el-form>
-              <template #footer>
-                <el-button @click="showCourseDialog = false">鍙栨秷</el-button>
-                <el-button type="danger" @click="createCourse" :loading="creatingCourse">鍒涘缓</el-button>
-              </template>
-            </el-dialog>
-          </template>
-
-          <!-- 鍏ㄦ牎鍏憡 -->
-          <template v-if="currentPage === 'notices'">
-            <div class="card">
-              <div class="card-title">
-                鍏ㄦ牎鍏憡
-                <el-button type="danger" size="small" @click="showNoticeDialog = true">+ 鍙戝竷鍏憡</el-button>
-              </div>
-              <div v-loading="loadingNotices">
-                <div class="notice-item" v-for="n in schoolNotices" :key="n.id" style="display:flex;align-items:center;">
-                  <div style="flex:1;">
-                    <div class="title">
-                      <el-tag v-if="n.important" type="danger" size="small" style="margin-right:8px;">閲嶈</el-tag>
-                      {{ n.title }}
-                    </div>
-                    <div class="meta">{{ n.author }} 路 {{ n.date }}</div>
-                  </div>
-                  <el-button type="text" size="small" style="color:#f56c6c;" @click="deleteNotice(n)">鍒犻櫎</el-button>
-                </div>
-                <div v-if="schoolNotices.length === 0" class="empty-state">
-                  <div>鏆傛棤鍏憡</div>
-                </div>
-              </div>
-            </div>
-
-            <el-dialog v-model="showNoticeDialog" title="鍙戝竷鍏ㄦ牎鍏憡" width="500px">
-              <el-form :model="newNotice" label-width="80px">
-                <el-form-item label="鍏憡鏍囬"><el-input v-model="newNotice.title" /></el-form-item>
-                <el-form-item label="鍏憡鍐呭"><el-input v-model="newNotice.content" type="textarea" :rows="4" /></el-form-item>
-                <el-form-item label="鏄惁閲嶈">
-                  <el-switch v-model="newNotice.important" />
-                </el-form-item>
-              </el-form>
-              <template #footer>
-                <el-button @click="showNoticeDialog = false">鍙栨秷</el-button>
-                <el-button type="danger" @click="publishNotice" :loading="publishingNotice">鍙戝竷</el-button>
-              </template>
-            </el-dialog>
-          </template>
-        </div>
-      </div>
-    </div>
-
-    <!-- 鐢ㄦ埛琛ㄥ崟寮圭獥 -->
-    <el-dialog v-model="showUserForm" :title="editingUser ? '缂栬緫鐢ㄦ埛' : '娣诲姞鐢ㄦ埛'" width="500px">
-      <el-form :model="userForm" label-width="80px">
-        <el-form-item label="鐢ㄦ埛鍚?><el-input v-model="userForm.username" :disabled="!!editingUser" /></el-form-item>
-        <el-form-item label="濮撳悕"><el-input v-model="userForm.realName" /></el-form-item>
-        <el-form-item label="瀵嗙爜" v-if="!editingUser"><el-input v-model="userForm.password" type="password" show-password /></el-form-item>
-        <el-form-item label="瀵嗙爜" v-else><el-input v-model="userForm.password" placeholder="鐣欑┖鍒欎笉淇敼" type="password" show-password /></el-form-item>
-        <el-form-item label="瀛﹂櫌"><el-input v-model="userForm.college" /></el-form-item>
-        <el-form-item label="鎵嬫満鍙?><el-input v-model="userForm.phone" /></el-form-item>
-        <el-form-item label="閭"><el-input v-model="userForm.email" /></el-form-item>
-        <el-form-item label="瀛﹀彿" v-if="userForm.role === 'student'"><el-input v-model="userForm.studentId" /></el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showUserForm = false">鍙栨秷</el-button>
-        <el-button type="danger" @click="saveUser" :loading="savingUser">淇濆瓨</el-button>
-      </template>
-    </el-dialog>
+<div class="login-wrap" id="loginPage">
+  <div class="login-box">
+    <h2>?? 效园通管理端</h2>
+    <p>请输入管理员账号登录</p>
+    <div class="error" id="loginError"></div>
+    <input type="text" id="username" placeholder="用户名" value="admin">
+    <input type="password" id="password" placeholder="密码" value="admin123">
+    <button onclick="login()">登 录</button>
   </div>
+</div>
 
-  <script>
-    const { createApp, ref, computed, reactive, onMounted } = Vue;
+<div class="dashboard" id="dashboardPage">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2>?? 效园通 · 学校管理端</h2>
+    <span class="logout" onclick="logout()">退出登录</span>
+  </div>
+  <div class="stats" id="statsArea"></div>
+  <div class="nav">
+    <button class="active" onclick="showPage('teachers',this)">教师管理</button>
+    <button onclick="showPage('students',this)">学生管理</button>
+    <button onclick="showPage('courses',this)">课程管理</button>
+    <button onclick="showPage('notices',this)">全校公告</button>
+  </div>
+  <div id="contentArea"></div>
+</div>
 
-    const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3000/api' : location.origin + '/api';
-    function getToken() { return localStorage.getItem('admin_token'); }
-    async function api(path, options = {}) {
-      const headers = { 'Content-Type': 'application/json' };
-      const token = getToken();
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const resp = await fetch(API_BASE + path, { ...options, headers: { ...headers, ...options.headers } });
-      const data = await resp.json();
-      if (!data.success) throw new Error(data.error?.message || '璇锋眰澶辫触');
-      return data.data;
+<script>
+const API = location.origin + '/api';
+let token = localStorage.getItem('admin_token');
+
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + path, { ...opts, headers });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error?.message || '请求失败');
+  return json.data;
+}
+
+async function login() {
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  try {
+    const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
+    if (data.user.role !== 'admin') throw new Error('需要管理员权限');
+    token = data.token;
+    localStorage.setItem('admin_token', token);
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('dashboardPage').style.display = 'block';
+    loadDashboard();
+  } catch (e) {
+    const err = document.getElementById('loginError');
+    err.textContent = e.message;
+    err.style.display = 'block';
+  }
+}
+
+function logout() { localStorage.removeItem('admin_token'); token = null; location.reload(); }
+
+async function loadDashboard() {
+  try {
+    const d = await api('/admin/dashboard');
+    const s = d.stats;
+    document.getElementById('statsArea').innerHTML =
+      '<div class="stat"><div class="num">' + (s.teachers || 0) + '</div><div class="label">教师</div></div>' +
+      '<div class="stat"><div class="num">' + (s.students || 0) + '</div><div class="label">学生</div></div>' +
+      '<div class="stat"><div class="num">' + (s.courses || 0) + '</div><div class="label">课程</div></div>' +
+      '<div class="stat"><div class="num">' + (s.activeNotices || 0) + '</div><div class="label">公告</div></div>';
+    showPage('teachers');
+  } catch (e) { if (e.message.includes('token') || e.message.includes('认证')) logout(); }
+}
+
+async function showPage(page, btn) {
+  if (btn) { document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+  const area = document.getElementById('contentArea');
+  area.innerHTML = '<div class="card"><p style="color:#999;">加载中...</p></div>';
+  try {
+    if (page === 'teachers') {
+      const d = await api('/admin/users?role=teacher');
+      area.innerHTML = '<div class="card"><h3>教师管理</h3><table><tr><th>姓名</th><th>用户名</th><th>学院</th><th>创建时间</th></tr>' +
+        d.list.map(u => '<tr><td>' + u.realName + '</td><td>' + u.username + '</td><td>' + (u.college || '-') + '</td><td>' + (u.createdAt || '').slice(0,10) + '</td></tr>').join('') +
+        '</table><p style="color:#999;font-size:12px;margin-top:10px;">共 ' + d.total + ' 位教师</p></div>';
+    } else if (page === 'students') {
+      const d = await api('/admin/users?role=student&pageSize=20');
+      area.innerHTML = '<div class="card"><h3>学生管理</h3><table><tr><th>学号</th><th>姓名</th><th>用户名</th><th>学院</th></tr>' +
+        d.list.map(u => '<tr><td>' + (u.studentId || '-') + '</td><td>' + u.realName + '</td><td>' + u.username + '</td><td>' + (u.college || '-') + '</td></tr>').join('') +
+        '</table><p style="color:#999;font-size:12px;margin-top:10px;">共 ' + d.total + ' 名学生</p></div>';
+    } else if (page === 'courses') {
+      const d = await api('/admin/courses');
+      area.innerHTML = '<div class="card"><h3>课程管理</h3><table><tr><th>课程名称</th><th>授课教师</th><th>类型</th><th>学生数</th><th>状态</th></tr>' +
+        d.map(c => '<tr><td>' + c.name + '</td><td>' + c.teacherName + '</td><td>' + c.type + '</td><td>' + c.studentCount + '人</td><td>' + (c.status === 'active' ? '? 进行中' : '?? 已归档') + '</td></tr>').join('') +
+        '</table></div>';
+    } else if (page === 'notices') {
+      const d = await api('/admin/notices');
+      area.innerHTML = '<div class="card"><h3>全校公告</h3>' +
+        (d.length === 0 ? '<p style="color:#999;">暂无公告</p>' :
+        '<table><tr><th>标题</th><th>日期</th></tr>' +
+        d.map(n => '<tr><td>' + (n.important ? '?? ' : '') + n.title + '</td><td>' + n.date + '</td></tr>').join('') + '</table>') +
+        '</div>';
     }
+  } catch (e) {
+    area.innerHTML = '<div class="card"><p style="color:#f44336;">加载失败: ' + e.message + '</p></div>';
+  }
+}
 
-    const app = createApp({
-      setup() {
-        const isLoggedIn = ref(!!getToken());
-        const loginLoading = ref(false);
-        const loginForm = reactive({ username: 'admin', password: 'admin123' });
-        const currentUser = reactive({});
-
-        const handleLogin = async () => {
-          loginLoading.value = true;
-          try {
-            const data = await api('/auth/login', { method: 'POST', body: JSON.stringify(loginForm) });
-            localStorage.setItem('admin_token', data.token);
-            Object.assign(currentUser, data.user);
-            isLoggedIn.value = true;
-            ElementPlus.ElMessage.success('鐧诲綍鎴愬姛锛?);
-            loadAll();
-          } catch (e) { ElementPlus.ElMessage.error(e.message); }
-          finally { loginLoading.value = false; }
-        };
-
-        const handleLogout = () => { localStorage.removeItem('admin_token'); isLoggedIn.value = false; };
-
-        const currentPage = ref('dashboard');
-        const pageTitle = computed(() => ({ dashboard:'鏁版嵁姒傝', teachers:'鏁欏笀绠＄悊', students:'瀛︾敓绠＄悊', courses:'璇剧▼绠＄悊', notices:'鍏ㄦ牎鍏憡' }[currentPage.value] || ''));
-        const handleMenuSelect = (i) => { currentPage.value = i; };
-
-        // Dashboard
-        const dashStats = reactive({});
-        const attendanceStats = ref([]);
-        const collegeStats = ref([]);
-        const maxCollegeCount = computed(() => Math.max(...collegeStats.value.map(c => c.count), 1));
-
-        const loadDashboard = async () => {
-          try {
-            const data = await api('/admin/dashboard');
-            Object.assign(dashStats, data.stats);
-            attendanceStats.value = data.attendanceStats;
-            collegeStats.value = data.collegeStats;
-          } catch (e) { console.error(e); }
-        };
-
-        // Users
-        const teachers = ref([]);
-        const loadingTeachers = ref(false);
-        const teacherSearch = ref('');
-        const students = ref([]);
-        const loadingStudents = ref(false);
-        const studentSearch = ref('');
-        const studentPage = ref(1);
-        const studentTotal = ref(0);
-
-        const loadTeachers = async () => {
-          loadingTeachers.value = true;
-          try {
-            const data = await api(`/admin/users?role=teacher&keyword=${teacherSearch.value}`);
-            teachers.value = data.list;
-          } catch (e) { console.error(e); }
-          finally { loadingTeachers.value = false; }
-        };
-
-        const loadStudents = async () => {
-          loadingStudents.value = true;
-          try {
-            const data = await api(`/admin/users?role=student&keyword=${studentSearch.value}&page=${studentPage.value}`);
-            students.value = data.list;
-            studentTotal.value = data.total;
-          } catch (e) { console.error(e); }
-          finally { loadingStudents.value = false; }
-        };
-
-        // User form
-        const showUserForm = ref(false);
-        const editingUser = ref(null);
-        const savingUser = ref(false);
-        const userForm = reactive({ username: '', password: '', realName: '', role: 'teacher', college: '', phone: '', email: '', studentId: '' });
-
-        const showUserDialog = (role) => {
-          editingUser.value = null;
-          Object.assign(userForm, { username: '', password: '', realName: '', role, college: '', phone: '', email: '', studentId: '' });
-          showUserForm.value = true;
-        };
-
-        const editUser = (user) => {
-          editingUser.value = user;
-          Object.assign(userForm, { username: user.username, password: '', realName: user.realName, role: user.role, college: user.college, phone: user.phone || '', email: user.email || '', studentId: user.studentId || '' });
-          showUserForm.value = true;
-        };
-
-        const saveUser = async () => {
-          savingUser.value = true;
-          try {
-            if (editingUser.value) {
-              await api(`/admin/users/${editingUser.value.id}`, { method: 'PUT', body: JSON.stringify(userForm) });
-            } else {
-              await api('/admin/users', { method: 'POST', body: JSON.stringify(userForm) });
-            }
-            ElementPlus.ElMessage.success('淇濆瓨鎴愬姛锛?);
-            showUserForm.value = false;
-            loadTeachers(); loadStudents();
-          } catch (e) { ElementPlus.ElMessage.error(e.message); }
-          finally { savingUser.value = false; }
-        };
-
-        const deleteUser = async (user) => {
-          try {
-            await ElMessageBox.confirm(`纭畾鍒犻櫎鐢ㄦ埛銆?{user.realName}銆嶏紵`, '纭鍒犻櫎', { type: 'warning' });
-            await api(`/admin/users/${user.id}`, { method: 'DELETE' });
-            ElementPlus.ElMessage.success('宸插垹闄?);
-            loadTeachers(); loadStudents();
-          } catch (e) { if (e !== 'cancel') ElementPlus.ElMessage.error(e.message || '鍒犻櫎澶辫触'); }
-        };
-
-        // Courses
-        const allCourses = ref([]);
-        const loadingCourses = ref(false);
-        const showCourseDialog = ref(false);
-        const creatingCourse = ref(false);
-        const newCourse = reactive({ name: '', teacherId: null, location: '', type: '蹇呬慨', semester: '', college: '' });
-
-        const loadCourses = async () => {
-          loadingCourses.value = true;
-          try { allCourses.value = await api('/admin/courses'); }
-          catch (e) { console.error(e); }
-          finally { loadingCourses.value = false; }
-        };
-
-        const createCourse = async () => {
-          if (!newCourse.name || !newCourse.teacherId) return ElementPlus.ElMessage.warning('璇峰～鍐欒绋嬪悕绉板拰鏁欏笀');
-          creatingCourse.value = true;
-          try {
-            await api('/admin/courses', { method: 'POST', body: JSON.stringify(newCourse) });
-            ElementPlus.ElMessage.success('璇剧▼鍒涘缓鎴愬姛锛?);
-            showCourseDialog.value = false;
-            loadCourses();
-          } catch (e) { ElementPlus.ElMessage.error(e.message); }
-          finally { creatingCourse.value = false; }
-        };
-
-        const archiveCourse = async (course) => {
-          try {
-            await ElMessageBox.confirm(`纭畾褰掓。璇剧▼銆?{course.name}銆嶏紵`, '纭', { type: 'warning' });
-            await api(`/admin/courses/${course.id}`, { method: 'DELETE' });
-            ElementPlus.ElMessage.success('宸插綊妗?);
-            loadCourses();
-          } catch (e) { if (e !== 'cancel') ElementPlus.ElMessage.error(e.message); }
-        };
-
-        // Notices
-        const schoolNotices = ref([]);
-        const loadingNotices = ref(false);
-        const showNoticeDialog = ref(false);
-        const publishingNotice = ref(false);
-        const newNotice = reactive({ title: '', content: '', important: false });
-
-        const loadNotices = async () => {
-          loadingNotices.value = true;
-          try { schoolNotices.value = await api('/admin/notices'); }
-          catch (e) { console.error(e); }
-          finally { loadingNotices.value = false; }
-        };
-
-        const publishNotice = async () => {
-          if (!newNotice.title) return ElMessage.warning('璇峰～鍐欐爣棰?);
-          publishingNotice.value = true;
-          try {
-            await api('/admin/notices', { method: 'POST', body: JSON.stringify(newNotice) });
-            ElementPlus.ElMessage.success('鍏憡宸插彂甯冿紒');
-            showNoticeDialog.value = false;
-            Object.assign(newNotice, { title: '', content: '', important: false });
-            loadNotices(); loadDashboard();
-          } catch (e) { ElementPlus.ElMessage.error(e.message); }
-          finally { publishingNotice.value = false; }
-        };
-
-        const deleteNotice = async (n) => {
-          try {
-            await ElMessageBox.confirm('纭畾鍒犻櫎姝ゅ叕鍛婏紵', '纭', { type: 'warning' });
-            await api(`/admin/notices/${n.id}`, { method: 'DELETE' });
-            ElementPlus.ElMessage.success('宸插垹闄?);
-            loadNotices(); loadDashboard();
-          } catch (e) { if (e !== 'cancel') ElementPlus.ElMessage.error(e.message); }
-        };
-
-        const formatDate = (d) => d ? new Date(d).toLocaleString('zh-CN') : '-';
-
-        const loadAll = () => { loadDashboard(); loadTeachers(); loadStudents(); loadCourses(); loadNotices(); };
-
-        onMounted(async () => {
-          if (isLoggedIn.value) {
-            try {
-              const user = await api('/auth/me');
-              Object.assign(currentUser, user);
-              loadAll();
-            } catch (e) { handleLogout(); }
-          }
-        });
-
-        return {
-          isLoggedIn, loginForm, loginLoading, handleLogin, handleLogout, currentUser,
-          currentPage, pageTitle, handleMenuSelect,
-          dashStats, attendanceStats, collegeStats, maxCollegeCount,
-          teachers, loadingTeachers, teacherSearch, loadTeachers,
-          students, loadingStudents, studentSearch, studentPage, studentTotal, loadStudents,
-          showUserForm, editingUser, savingUser, userForm, showUserDialog, editUser, saveUser, deleteUser,
-          allCourses, loadingCourses, showCourseDialog, creatingCourse, newCourse, loadCourses, createCourse, archiveCourse,
-          schoolNotices, loadingNotices, showNoticeDialog, publishingNotice, newNotice, loadNotices, publishNotice, deleteNotice,
-          formatDate,
-        };
-      }
-    });
-
-    for (const [key, component] of Object.entries(ElementPlusIconsVue)) app.component(key, component);
-    app.use(ElementPlus);
-    app.mount('#app');
-  </script>
+if (token) { document.getElementById('loginPage').style.display = 'none'; document.getElementById('dashboardPage').style.display = 'block'; loadDashboard(); }
+</script>
 </body>
 </html>
