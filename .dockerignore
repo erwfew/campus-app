@@ -1,0 +1,9 @@
+node_modules
+server/node_modules
+server/data
+*.db
+.py
+.hbuilderx
+docs
+memory
+.git
