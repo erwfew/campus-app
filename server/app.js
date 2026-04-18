@@ -7,6 +7,7 @@ const { initDb, saveDb, all } = require('./db');
 const seed = require('./db/seed');
 const { errorHandler } = require('./middleware/errorHandler');
 const importRoutes = require('./routes/import');
+const importDataRoutes = require('./routes/import-data');
 const homeworkRoutes = require('./routes/homework');
 const authRoutes = require('./routes/auth');
 const teacherRoutes = require('./routes/teacher');
@@ -98,6 +99,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/homework', homeworkRoutes);
 app.use('/api/import', importRoutes);
+app.use('/api/import-data', importDataRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/admin', adminRoutes);
 

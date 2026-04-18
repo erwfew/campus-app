@@ -53,6 +53,7 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
     <button class="active" onclick="showPage('teachers',this)">教师管理</button>
     <button onclick="showPage('students',this)">学生管理</button>
     <button onclick="showPage('courses',this)">课程管理</button>
+    <button onclick="showPage('import',this)">数据导入</button>
     <button onclick="showPage('notices',this)">全校公告</button>
   </div>
   <div id="contentArea"></div>
@@ -137,6 +138,35 @@ async function showPage(page, btn) {
         d.map(function(c) {
           return '<tr><td>' + c.name + '</td><td>' + c.teacherName + '</td><td>' + c.type + '</td><td>' + c.studentCount + '人</td><td>' + (c.status === 'active' ? '✅ 进行中' : '📦 已归档') + '</td></tr>';
         }).join('') + '</table></div>';
+    } else if (page === 'import') {
+      area.innerHTML = '<div class="card">' +
+        '<h3>📥 数据批量导入</h3>' +
+        '<p style="color:#999;margin-bottom:16px;">上传 Excel 文件（.xlsx）批量导入数据，先下载模板填写</p>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">' +
+        '<div class="card" style="box-shadow:none;border:2px dashed #ddd;margin:0;">' +
+        '<h3 style="font-size:15px;">👨‍🏫 教师数据</h3>' +
+        '<p style="color:#999;font-size:12px;margin-bottom:12px;">列：用户名、姓名、密码、学院、电话</p>' +
+        '<a href="/api/import-data/template/teachers" style="display:inline-block;padding:6px 16px;background:#f0f0f0;border-radius:6px;color:#333;text-decoration:none;font-size:13px;margin-right:8px;">📥 下载模板</a>' +
+        '<button onclick="document.getElementById(\'teacherFile\').click()" style="padding:6px 16px;background:#4361ee;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">📤 上传导入</button>' +
+        '<input type="file" id="teacherFile" accept=".xlsx,.xls" style="display:none" onchange="uploadImport(\'teachers\',this)">' +
+        '</div>' +
+        '<div class="card" style="box-shadow:none;border:2px dashed #ddd;margin:0;">' +
+        '<h3 style="font-size:15px;">👨‍🎓 学生数据</h3>' +
+        '<p style="color:#999;font-size:12px;margin-bottom:12px;">列：学号、姓名、用户名、密码、学院、专业、年级</p>' +
+        '<a href="/api/import-data/template/students" style="display:inline-block;padding:6px 16px;background:#f0f0f0;border-radius:6px;color:#333;text-decoration:none;font-size:13px;margin-right:8px;">📥 下载模板</a>' +
+        '<button onclick="document.getElementById(\'studentFile\').click()" style="padding:6px 16px;background:#4361ee;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">📤 上传导入</button>' +
+        '<input type="file" id="studentFile" accept=".xlsx,.xls" style="display:none" onchange="uploadImport(\'students\',this)">' +
+        '</div>' +
+        '<div class="card" style="box-shadow:none;border:2px dashed #ddd;margin:0;">' +
+        '<h3 style="font-size:15px;">📚 课程数据</h3>' +
+        '<p style="color:#999;font-size:12px;margin-bottom:12px;">列：课程名称、教师用户名、上课时间(1-7)、开始/结束节次、教室、类型、学生学号</p>' +
+        '<a href="/api/import-data/template/courses" style="display:inline-block;padding:6px 16px;background:#f0f0f0;border-radius:6px;color:#333;text-decoration:none;font-size:13px;margin-right:8px;">📥 下载模板</a>' +
+        '<button onclick="document.getElementById(\'courseFile\').click()" style="padding:6px 16px;background:#4361ee;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">📤 上传导入</button>' +
+        '<input type="file" id="courseFile" accept=".xlsx,.xls" style="display:none" onchange="uploadImport(\'courses\',this)">' +
+        '</div>' +
+        '</div>' +
+        '<div id="importResult"></div>' +
+        '</div>';
     } else if (page === 'notices') {
       var d = await api('/admin/notices');
       area.innerHTML = '<div class="card"><h3>全校公告</h3>' +
@@ -149,6 +179,30 @@ async function showPage(page, btn) {
   } catch (e) {
     area.innerHTML = '<div class="card"><p style="color:#f44336;">加载失败: ' + e.message + '</p></div>';
   }
+}
+
+async function uploadImport(type, input) {
+  if (!input.files[0]) return;
+  var formData = new FormData();
+  formData.append('file', input.files[0]);
+  var res = await fetch(API + '/import-data/' + type, { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: formData });
+  var json = await res.json();
+  var area = document.getElementById('importResult');
+  if (json.success) {
+    var d = json.data;
+    var html = '<div class="card" style="border-left:4px solid #52c41a;"><h3>导入完成</h3>';
+    html += '<p>总数: ' + d.total + ' | 成功: <b style="color:#52c41a;">' + d.success + '</b> | 跳过(已存在): <b style="color:#faad14;">' + d.skipped + '</b></p>';
+    if (d.errors && d.errors.length > 0) {
+      html += '<p style="color:#f44336;margin-top:8px;">错误:</p><ul style="color:#f44336;font-size:13px;">';
+      d.errors.forEach(function(e) { html += '<li>' + e + '</li>'; });
+      html += '</ul>';
+    }
+    html += '</div>';
+    area.innerHTML = html;
+  } else {
+    area.innerHTML = '<div class="card" style="border-left:4px solid #f44336;"><h3>导入失败</h3><p style="color:#f44336;">' + (json.error && json.error.message || '未知错误') + '</p></div>';
+  }
+  input.value = '';
 }
 
 if (token) {
