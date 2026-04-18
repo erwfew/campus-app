@@ -191,9 +191,11 @@ async function showAttendance(courseId, courseName) {
       var rate = s.attendanceRate || 0;
       var color = rate >= 90 ? '#52c41a' : rate >= 70 ? '#faad14' : '#f44336';
       return '<tr><td>' + s.studentId + '</td><td>' + s.realName + '</td><td style="color:' + color + ';font-weight:bold;">' + rate + '%</td><td>' + (s.todayStatus || '-') + '</td><td>' +
-        '<button onclick="markAttendance(' + courseId + ',' + s.id + ',\'present\')" style="padding:2px 8px;background:#52c41a;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-right:4px;font-size:12px;">出勤</button>' +
-        '<button onclick="markAttendance(' + courseId + ',' + s.id + ',\'absent\')" style="padding:2px 8px;background:#f44336;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-right:4px;font-size:12px;">缺勤</button>' +
-        '<button onclick="markAttendance(' + courseId + ',' + s.id + ',\'late\')" style="padding:2px 8px;background:#faad14;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">迟到</button>' +
+        '<button onclick="markAttendance(' + courseId + ',' + s.id + ',\'present\',this)" style="padding:2px 8px;background:#52c41a;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-right:2px;font-size:12px;">正常</button>' +
+        '<button onclick="markAttendance(' + courseId + ',' + s.id + ',\'late\',this)" style="padding:2px 8px;background:#faad14;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-right:2px;font-size:12px;">迟到</button>' +
+        '<button onclick="markAttendance(' + courseId + ',' + s.id + ',\'absent\',this)" style="padding:2px 8px;background:#f44336;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-right:2px;font-size:12px;">缺勤</button>' +
+        '<button onclick="markAttendance(' + courseId + ',' + s.id + ',\'leave\',this)" style="padding:2px 8px;background:#722ed1;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-right:2px;font-size:12px;">请假</button>' +
+        '<button onclick="markAttendance(' + courseId + ',' + s.id + ',\'official\',this)" style="padding:2px 8px;background:#1890ff;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">公假</button>' +
         '</td></tr>';
     }).join('');
     html += '</table></div>';
@@ -203,11 +205,18 @@ async function showAttendance(courseId, courseName) {
   }
 }
 
-async function markAttendance(courseId, studentId, status) {
+async function markAttendance(courseId, studentId, status, btn) {
+  var statusMap = { present: '✅ 正常', absent: '❌ 缺勤', late: '⏰ 迟到', leave: '📝 请假', official: '🏛️ 公假' };
   try {
     await api('/teacher/attendance', { method: 'POST', body: JSON.stringify({ courseId: courseId, records: [{ studentId: studentId, status: status }] }) });
-    alert('考勤已提交');
-    showAttendance(courseId, '');
+    // 更新按钮高亮和状态显示
+    if (btn) {
+      var row = btn.closest('tr');
+      var statusCell = row.children[3];
+      statusCell.innerHTML = statusMap[status] || status;
+      statusCell.style.color = '#4361ee';
+      statusCell.style.fontWeight = 'bold';
+    }
   } catch (e) { alert('提交失败: ' + e.message); }
 }
 
