@@ -374,6 +374,15 @@ function switchTab(tab) {
   window.scrollTo(0, 0);
 }
 
+// ==================== 学习中心 Tab ====================
+
+function switchStudyTab(el, tabId) {
+    document.querySelectorAll('.study-tab').forEach(function(t) { t.classList.remove('active'); });
+    el.classList.add('active');
+    document.querySelectorAll('.study-panel').forEach(function(p) { p.classList.remove('active'); });
+    document.getElementById(tabId).classList.add('active');
+}
+
 // ==================== 弹窗 ====================
 
 function closeModal() {
