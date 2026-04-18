@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ğ§Ô°Í¨ - ½ÌÊ¦¶Ë</title>
+<title>æ•ˆå›­é€š - æ•™å¸ˆç«¯</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif; background: #f5f6fa; }
@@ -34,26 +34,26 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
 <body>
 <div class="login-wrap" id="loginPage">
   <div class="login-box">
-    <h2>?? Ğ§Ô°Í¨½ÌÊ¦¶Ë</h2>
-    <p>ÇëÊäÈëÕËºÅÃÜÂëµÇÂ¼</p>
+    <h2>ğŸ“š æ•ˆå›­é€šæ•™å¸ˆç«¯</h2>
+    <p>è¯·è¾“å…¥è´¦å·å¯†ç ç™»å½•</p>
     <div class="error" id="loginError"></div>
-    <input type="text" id="username" placeholder="ÓÃ»§Ãû" value="teacher1">
-    <input type="password" id="password" placeholder="ÃÜÂë" value="teacher123">
-    <button onclick="login()">µÇ Â¼</button>
+    <input type="text" id="username" placeholder="ç”¨æˆ·å" value="teacher1">
+    <input type="password" id="password" placeholder="å¯†ç " value="teacher123">
+    <button onclick="login()">ç™» å½•</button>
   </div>
 </div>
 
 <div class="dashboard" id="dashboardPage">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-    <h2>?? Ğ§Ô°Í¨ ¡¤ ½ÌÊ¦¹¤×÷Ì¨</h2>
-    <span class="logout" onclick="logout()">ÍË³öµÇÂ¼</span>
+    <h2>ğŸ“š æ•ˆå›­é€š Â· æ•™å¸ˆå·¥ä½œå°</h2>
+    <span class="logout" onclick="logout()">é€€å‡ºç™»å½•</span>
   </div>
   <div class="stats" id="statsArea"></div>
   <div class="nav">
-    <button class="active" onclick="showPage('courses',this)">ÎÒµÄ¿Î³Ì</button>
-    <button onclick="showPage('homework',this)">×÷Òµ¹ÜÀí</button>
-    <button onclick="showPage('grades',this)">³É¼¨Â¼Èë</button>
-    <button onclick="showPage('notices',this)">¿Î³Ì¹«¸æ</button>
+    <button class="active" onclick="showPage('courses',this)">æˆ‘çš„è¯¾ç¨‹</button>
+    <button onclick="showPage('homework',this)">ä½œä¸šç®¡ç†</button>
+    <button onclick="showPage('grades',this)">æˆç»©å½•å…¥</button>
+    <button onclick="showPage('notices',this)">è¯¾ç¨‹å…¬å‘Š</button>
   </div>
   <div id="contentArea"></div>
 </div>
@@ -62,27 +62,28 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
 const API = location.origin + '/api';
 let token = localStorage.getItem('token');
 
-async function api(path, opts = {}) {
-  const headers = { 'Content-Type': 'application/json' };
+async function api(path, opts) {
+  opts = opts || {};
+  var headers = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = 'Bearer ' + token;
-  const res = await fetch(API + path, { ...opts, headers });
-  const json = await res.json();
-  if (!json.success) throw new Error(json.error?.message || 'ÇëÇóÊ§°Ü');
+  var res = await fetch(API + path, { method: opts.method || 'GET', headers: headers, body: opts.body });
+  var json = await res.json();
+  if (!json.success) throw new Error(json.error && json.error.message || 'è¯·æ±‚å¤±è´¥');
   return json.data;
 }
 
 async function login() {
-  const u = document.getElementById('username').value;
-  const p = document.getElementById('password').value;
+  var u = document.getElementById('username').value;
+  var p = document.getElementById('password').value;
   try {
-    const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
+    var data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
     token = data.token;
     localStorage.setItem('token', token);
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('dashboardPage').style.display = 'block';
     loadDashboard();
   } catch (e) {
-    const err = document.getElementById('loginError');
+    var err = document.getElementById('loginError');
     err.textContent = e.message;
     err.style.display = 'block';
   }
@@ -94,70 +95,80 @@ function logout() {
   location.reload();
 }
 
+function weekDayStr(d) {
+  var days = ['ä¸€','äºŒ','ä¸‰','å››','äº”','å…­','æ—¥'];
+  return days[d - 1] || d;
+}
+
 async function loadDashboard() {
   try {
-    const d = await api('/teacher/dashboard');
+    var d = await api('/teacher/dashboard');
     document.getElementById('statsArea').innerHTML =
-      '<div class="stat"><div class="num">' + d.courseCount + '</div><div class="label">¿Î³ÌÊı</div></div>' +
-      '<div class="stat"><div class="num">' + d.studentCount + '</div><div class="label">Ñ§ÉúÊı</div></div>' +
-      '<div class="stat"><div class="num">' + d.todayClasses + '</div><div class="label">½ñÈÕ¿ÎÊ±</div></div>' +
-      '<div class="stat"><div class="num">' + d.pendingGrading + '</div><div class="label">´ıÅú¸Ä</div></div>';
+      '<div class="stat"><div class="num">' + d.courseCount + '</div><div class="label">è¯¾ç¨‹æ•°</div></div>' +
+      '<div class="stat"><div class="num">' + d.studentCount + '</div><div class="label">å­¦ç”Ÿæ•°</div></div>' +
+      '<div class="stat"><div class="num">' + d.todayClasses + '</div><div class="label">ä»Šæ—¥è¯¾æ—¶</div></div>' +
+      '<div class="stat"><div class="num">' + d.pendingGrading + '</div><div class="label">å¾…æ‰¹æ”¹</div></div>';
     showPage('courses');
   } catch (e) {
-    if (e.message.includes('token') || e.message.includes('ÈÏÖ¤')) logout();
+    if (e.message.indexOf('token') >= 0 || e.message.indexOf('è®¤è¯') >= 0) logout();
   }
 }
 
 async function showPage(page, btn) {
   if (btn) {
-    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.nav button').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
   }
-  const area = document.getElementById('contentArea');
-  area.innerHTML = '<div class="card"><p style="color:#999;">¼ÓÔØÖĞ...</p></div>';
+  var area = document.getElementById('contentArea');
+  area.innerHTML = '<div class="card"><p style="color:#999;">åŠ è½½ä¸­...</p></div>';
   try {
     if (page === 'courses') {
-      const courses = await api('/teacher/courses');
-      area.innerHTML = '<div class="card"><h3>ÎÒµÄ¿Î³Ì</h3><table><tr><th>¿Î³ÌÃû³Æ</th><th>ÉÏ¿ÎÊ±¼ä</th><th>½ÌÊÒ</th><th>Ñ§ÉúÊı</th></tr>' +
-        courses.map(c => '<tr><td>' + c.name + '</td><td>ÖÜ' + ['Ò»','¶ş','Èı','ËÄ','Îå','Áù','ÈÕ'][c.weekDay] + ' µÚ' + c.startSection + '-' + c.endSection + '½Ú</td><td>' + c.location + '</td><td>' + c.studentCount + 'ÈË</td></tr>').join('') +
-        '</table></div>';
+      var courses = await api('/teacher/courses');
+      area.innerHTML = '<div class="card"><h3>æˆ‘çš„è¯¾ç¨‹</h3><table><tr><th>è¯¾ç¨‹åç§°</th><th>ä¸Šè¯¾æ—¶é—´</th><th>æ•™å®¤</th><th>å­¦ç”Ÿæ•°</th></tr>' +
+        courses.map(function(c) {
+          return '<tr><td>' + c.name + '</td><td>å‘¨' + weekDayStr(c.weekDay) + ' ç¬¬' + c.startSection + '-' + c.endSection + 'èŠ‚</td><td>' + c.location + '</td><td>' + c.studentCount + 'äºº</td></tr>';
+        }).join('') + '</table></div>';
     } else if (page === 'homework') {
-      const data = await api('/teacher/homework');
-      area.innerHTML = '<div class="card"><h3>×÷Òµ¹ÜÀí</h3><table><tr><th>×÷ÒµÃû³Æ</th><th>¿Î³Ì</th><th>½ØÖ¹Ê±¼ä</th><th>Ìá½»ÂÊ</th></tr>' +
-        (data || []).map(h => '<tr><td>' + h.title + '</td><td>' + h.course + '</td><td>' + (h.deadline || '-') + '</td><td>' + h.submitted + '/' + h.total + '</td></tr>').join('') +
-        '</table></div>';
+      var data = await api('/teacher/homework');
+      area.innerHTML = '<div class="card"><h3>ä½œä¸šç®¡ç†</h3><table><tr><th>ä½œä¸šåç§°</th><th>è¯¾ç¨‹</th><th>æˆªæ­¢æ—¶é—´</th><th>æäº¤ç‡</th></tr>' +
+        (data || []).map(function(h) {
+          return '<tr><td>' + h.title + '</td><td>' + h.course + '</td><td>' + (h.deadline || '-') + '</td><td>' + h.submitted + '/' + h.total + '</td></tr>';
+        }).join('') + '</table></div>';
     } else if (page === 'grades') {
-      const courses = await api('/teacher/courses');
-      area.innerHTML = '<div class="card"><h3>³É¼¨Â¼Èë</h3><p style="color:#999;margin-bottom:12px;">Ñ¡Ôñ¿Î³Ì²é¿´³É¼¨</p><table><tr><th>¿Î³ÌÃû³Æ</th><th>Ñ§ÉúÊı</th><th>²Ù×÷</th></tr>' +
-        courses.map(c => '<tr><td>' + c.name + '</td><td>' + c.studentCount + 'ÈË</td><td><button onclick="showGrades(' + c.id + ')" style="padding:4px 12px;background:#4361ee;color:#fff;border:none;border-radius:6px;cursor:pointer;">²é¿´</button></td></tr>').join('') +
-        '</table></div>';
+      var courses = await api('/teacher/courses');
+      area.innerHTML = '<div class="card"><h3>æˆç»©å½•å…¥</h3><p style="color:#999;margin-bottom:12px;">é€‰æ‹©è¯¾ç¨‹æŸ¥çœ‹æˆç»©</p><table><tr><th>è¯¾ç¨‹åç§°</th><th>å­¦ç”Ÿæ•°</th><th>æ“ä½œ</th></tr>' +
+        courses.map(function(c) {
+          return '<tr><td>' + c.name + '</td><td>' + c.studentCount + 'äºº</td><td><button onclick="showGrades(' + c.id + ')" style="padding:4px 12px;background:#4361ee;color:#fff;border:none;border-radius:6px;cursor:pointer;">æŸ¥çœ‹</button></td></tr>';
+        }).join('') + '</table></div>';
     } else if (page === 'notices') {
-      const notices = await api('/teacher/notices');
-      area.innerHTML = '<div class="card"><h3>¿Î³Ì¹«¸æ</h3>' +
-        (notices.length === 0 ? '<p style="color:#999;">ÔİÎŞ¹«¸æ</p>' :
-        '<table><tr><th>±êÌâ</th><th>¿Î³Ì</th><th>ÈÕÆÚ</th></tr>' +
-        notices.map(n => '<tr><td>' + (n.important ? '?? ' : '') + n.title + '</td><td>' + n.course + '</td><td>' + n.date + '</td></tr>').join('') + '</table>') +
-        '</div>';
+      var notices = await api('/teacher/notices');
+      area.innerHTML = '<div class="card"><h3>è¯¾ç¨‹å…¬å‘Š</h3>' +
+        (notices.length === 0 ? '<p style="color:#999;">æš‚æ— å…¬å‘Š</p>' :
+        '<table><tr><th>æ ‡é¢˜</th><th>è¯¾ç¨‹</th><th>æ—¥æœŸ</th></tr>' +
+        notices.map(function(n) {
+          return '<tr><td>' + (n.important ? 'ğŸ”´ ' : '') + n.title + '</td><td>' + n.course + '</td><td>' + n.date + '</td></tr>';
+        }).join('') + '</table>') + '</div>';
     }
   } catch (e) {
-    area.innerHTML = '<div class="card"><p style="color:#f44336;">¼ÓÔØÊ§°Ü: ' + e.message + '</p></div>';
+    area.innerHTML = '<div class="card"><p style="color:#f44336;">åŠ è½½å¤±è´¥: ' + e.message + '</p></div>';
   }
 }
 
 async function showGrades(courseId) {
-  const area = document.getElementById('contentArea');
-  area.innerHTML = '<div class="card"><p>¼ÓÔØÖĞ...</p></div>';
+  var area = document.getElementById('contentArea');
+  area.innerHTML = '<div class="card"><p>åŠ è½½ä¸­...</p></div>';
   try {
-    const grades = await api('/teacher/grades?courseId=' + courseId);
-    area.innerHTML = '<div class="card"><h3>³É¼¨ÁĞ±í</h3><button onclick="showPage(\'grades\')" style="float:right;padding:4px 12px;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;margin-bottom:10px;">·µ»Ø</button><table><tr><th>Ñ§ºÅ</th><th>ĞÕÃû</th><th>Æ½Ê±</th><th>ÆÚÖĞ</th><th>ÆÚÄ©</th><th>×ÜÆÀ</th></tr>' +
-      grades.map(g => '<tr><td>' + g.studentId + '</td><td>' + g.name + '</td><td>' + g.usual + '</td><td>' + g.midterm + '</td><td>' + g.final + '</td><td><b>' + g.total + '</b></td></tr>').join('') +
-      '</table></div>';
+    var grades = await api('/teacher/grades?courseId=' + courseId);
+    area.innerHTML = '<div class="card"><h3>æˆç»©åˆ—è¡¨</h3><button onclick="showPage(\'grades\')" style="float:right;padding:4px 12px;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;margin-bottom:10px;">è¿”å›</button><table><tr><th>å­¦å·</th><th>å§“å</th><th>å¹³æ—¶</th><th>æœŸä¸­</th><th>æœŸæœ«</th><th>æ€»è¯„</th></tr>' +
+      grades.map(function(g) {
+        return '<tr><td>' + g.studentId + '</td><td>' + g.name + '</td><td>' + g.usual + '</td><td>' + g.midterm + '</td><td>' + g['final'] + '</td><td><b>' + g.total + '</b></td></tr>';
+      }).join('') + '</table></div>';
   } catch (e) {
     area.innerHTML = '<div class="card"><p style="color:#f44336;">' + e.message + '</p></div>';
   }
 }
 
-// ×Ô¶¯µÇÂ¼
+// è‡ªåŠ¨ç™»å½•
 if (token) {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('dashboardPage').style.display = 'block';
