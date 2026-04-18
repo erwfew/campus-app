@@ -374,13 +374,14 @@ function switchTab(tab) {
   window.scrollTo(0, 0);
 }
 
-// ==================== 学习中心 Tab ====================
+// ==================== 学习中心视图切换 ====================
 
-function switchStudyTab(el, tabId) {
-    document.querySelectorAll('.study-tab').forEach(function(t) { t.classList.remove('active'); });
+function switchStudyView(el, view) {
+    document.querySelectorAll('.view-toggle .toggle-btn').forEach(function(t) { t.classList.remove('active'); });
     el.classList.add('active');
-    document.querySelectorAll('.study-panel').forEach(function(p) { p.classList.remove('active'); });
-    document.getElementById(tabId).classList.add('active');
+    document.querySelectorAll('.study-view').forEach(function(v) { v.classList.remove('active'); });
+    var target = document.getElementById('view-' + view);
+    if (target) target.classList.add('active');
 }
 
 // ==================== 弹窗 ====================

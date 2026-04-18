@@ -1688,47 +1688,322 @@ body {
     from { opacity: 1; }
     to { opacity: 0; }
 }
-/* ===== 成绩列表 ===== */
-.grade-list {
+/* ===== 学习页面 - 手机端风格 ===== */
+
+.custom-nav {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    margin: 0 0 12px 0;
+}
+.nav-title-bar {
+    flex: 1;
+}
+.nav-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* 视图切换 */
+.view-toggle {
+    display: flex;
+    gap: 0;
+    margin: 0 16px 12px;
+    background: var(--bg);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+.toggle-btn {
+    flex: 1;
+    padding: 8px 0;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+.toggle-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+/* 导入栏 */
+.import-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 16px 12px;
+    padding: 12px 16px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+}
+.import-icon { font-size: 18px; }
+.import-text { flex: 1; font-size: 14px; color: var(--text); }
+.import-arrow { font-size: 18px; color: var(--text-light); }
+
+/* 提醒卡片 */
+.reminder-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 16px 12px;
+    padding: 12px 16px;
+    background: #fff8e1;
+    border-radius: var(--radius);
+    border-left: 4px solid var(--warning);
+}
+.reminder-icon { font-size: 24px; }
+.reminder-info { flex: 1; display: flex; flex-direction: column; }
+.reminder-title { font-size: 11px; color: var(--warning); font-weight: 600; }
+.reminder-desc { font-size: 15px; color: var(--text); font-weight: 600; margin: 2px 0; }
+.reminder-time { font-size: 12px; color: var(--text-light); }
+
+/* 表格课表 */
+.study-view { display: none; }
+.study-view.active { display: block; }
+.table-card {
+    margin: 0 16px 12px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+.table-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px 0;
+}
+.table-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+}
+.table-week-info {
+    padding: 4px 16px 8px;
+    font-size: 12px;
+    color: var(--text-light);
+}
+.current-week-badge {
+    background: var(--primary);
+    color: white;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+.table-scroll {
+    overflow-x: auto;
+}
+.table-grid {
+    min-width: 100%;
+}
+.table-row {
+    display: flex;
+    border-bottom: 1px solid #f0f0f0;
+}
+.table-row:last-child { border-bottom: none; }
+.table-cell {
+    flex: 1;
+    min-width: 56px;
+    min-height: 44px;
+    padding: 4px;
+    text-align: center;
+    border-right: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.table-cell:last-child { border-right: none; }
+.table-header {
+    background: #f8f9fa;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-height: 32px;
+}
+.table-time-header { min-width: 50px; flex: 0.7; }
+.table-day-header.today { background: var(--primary); color: white; }
+.table-period-label {
+    min-width: 50px;
+    flex: 0.7;
+    background: #f8f9fa;
+}
+.period-text {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: 600;
+}
+.table-period-sep {
+    background: #f8f9fa;
+}
+.table-time-cell {
+    flex-direction: column;
+    min-width: 50px;
+    flex: 0.7;
+    background: #fafafa;
+}
+.time-text { font-size: 11px; color: var(--text-secondary); font-weight: 600; }
+.time-sub { font-size: 9px; color: var(--text-light); }
+.table-course {
+    width: 100%;
+    padding: 4px;
+    border-radius: 6px;
+    color: white;
+    text-align: center;
+}
+.tc-name { display: block; font-size: 11px; font-weight: 600; }
+.tc-loc { display: block; font-size: 9px; opacity: 0.85; }
+.table-course.math { background: var(--primary); }
+.table-course.english { background: var(--accent); }
+.table-course.data { background: var(--success); }
+.table-course.physics { background: var(--warning); }
+.table-course.politics { background: #9c27b0; }
+.table-course.pe { background: #ff5722; }
+
+/* 卡片（复用手机端 card 样式）*/
+.card {
+    margin: 0 16px 12px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 16px;
+}
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+    margin-bottom: 12px;
+}
+.card-action {
+    font-size: 13px;
+    color: var(--primary);
+    cursor: pointer;
+}
+
+/* 课程列表（手机端 course-item） */
+.course-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
-.grade-row {
+.course-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+}
+.course-item:last-child { border-bottom: none; }
+.course-item.active-course {
+    background: #f0f4ff;
+    margin: 0 -16px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border-bottom: none;
+}
+.course-time-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 48px;
+}
+.course-time { font-size: 13px; font-weight: 600; color: var(--text); }
+.course-end { font-size: 11px; color: var(--text-light); }
+.course-detail { flex: 1; }
+.cn { display: block; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.cl { display: block; font-size: 12px; color: var(--text-light); }
+
+/* 出勤状态标签 */
+.att-status {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.att-attended { background: var(--success); }
+.att-absent { background: var(--danger); }
+
+/* 作业列表（手机端 hw-item） */
+.homework-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.hw-item {
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 10px 0;
     border-bottom: 1px solid var(--border);
 }
-.grade-row:last-child {
-    border-bottom: none;
+.hw-item:last-child { border-bottom: none; }
+.hw-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
-.grade-name {
-    flex: 1;
-    min-width: 0;
+.hw-check.checked {
+    background: var(--success);
+    border-color: var(--success);
 }
-.grade-name h4 {
-    font-size: 14px;
-    color: var(--text);
-    margin-bottom: 2px;
+.hw-check.urgent {
+    border-color: var(--danger);
+    background: #ffebee;
 }
-.grade-type {
-    font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 4px;
-    background: #e3f2fd;
-    color: #1976d2;
+.hw-check-icon { color: white; font-size: 14px; font-weight: bold; }
+.hw-info { flex: 1; min-width: 0; }
+.hw-name { display: block; font-size: 14px; color: var(--text); font-weight: 500; }
+.hw-name.hw-done-text { text-decoration: line-through; color: var(--text-light); }
+.hw-course { display: block; font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.hw-deadline { text-align: right; }
+.hw-date { display: block; font-size: 11px; color: var(--text-light); }
+.hw-countdown { display: block; font-size: 13px; font-weight: 600; color: var(--text); }
+.hw-countdown.urgent { color: var(--danger); }
+
+/* 出勤统计（手机端 attendance-row） */
+.attendance-row {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 8px;
 }
-.grade-detail {
-    font-size: 11px;
-    color: var(--text-light);
-    white-space: nowrap;
-}
-.grade-score {
-    font-size: 20px;
-    font-weight: bold;
-    color: var(--primary);
-    min-width: 36px;
+.attendance-row .att-item {
     text-align: center;
+}
+.att-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+}
+.att-value.green { color: var(--success); }
+.att-value.red { color: var(--danger); }
+.att-value.blue { color: var(--primary); }
+.att-label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 4px;
 }

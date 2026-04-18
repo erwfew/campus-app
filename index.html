@@ -262,162 +262,277 @@
 
             <!-- 教务学习中心页 -->
             <div class="page" id="page-study">
-                <!-- 顶部卡片 - 和首页 welcome-card 一样的风格 -->
-                <div class="welcome-card" style="background: linear-gradient(135deg, var(--primary), var(--primary-light));">
-                    <div class="welcome-text">
-                        <h2>📚 学习中心</h2>
-                        <p>课程管理、作业提醒、考勤统计</p>
-                    </div>
-                    <div style="text-align:center;">
-                        <div style="font-size:28px;font-weight:bold;" id="attRateHero">90%</div>
-                        <div style="font-size:11px;opacity:0.9;">出勤率</div>
+                <!-- 自定义导航栏（和手机端一致） -->
+                <div class="custom-nav">
+                    <div class="nav-title-bar">
+                        <span class="nav-title">学习</span>
                     </div>
                 </div>
 
-                <!-- 课表 - 用 section 包裹，和其他模块一致 -->
-                <div class="section">
-                    <div class="section-header">
-                        <h3>本周课表</h3>
+                <!-- 视图切换（和手机端一致） -->
+                <div class="view-toggle">
+                    <button class="toggle-btn active" onclick="switchStudyView(this, 'table')">表</button>
+                    <button class="toggle-btn" onclick="switchStudyView(this, 'week')">周</button>
+                    <button class="toggle-btn" onclick="switchStudyView(this, 'day')">日</button>
+                </div>
+
+                <!-- 导入课程 -->
+                <div class="import-bar" onclick="showModal('导入课程', '请在手机端使用教务导入功能')">
+                    <span class="import-icon">📥</span>
+                    <span class="import-text">导入课程</span>
+                    <span class="import-arrow">›</span>
+                </div>
+
+                <!-- 课前提醒 -->
+                <div class="reminder-card">
+                    <span class="reminder-icon">🔔</span>
+                    <div class="reminder-info">
+                        <span class="reminder-title">下一节课</span>
+                        <span class="reminder-desc">大学英语</span>
+                        <span class="reminder-time">10:00 · 教学楼B-205</span>
                     </div>
-                    <div class="timetable" id="weekView">
-                        <div class="timetable-header">
-                            <span></span>
-                            <span>周一</span>
-                            <span>周二</span>
-                            <span>周三</span>
-                            <span>周四</span>
-                            <span>周五</span>
+                </div>
+
+                <!-- 表格视图 -->
+                <div id="view-table" class="study-view active">
+                    <div class="table-card">
+                        <div class="table-title-row">
+                            <span class="table-title">课程表</span>
                         </div>
-                        <div class="timetable-row">
-                            <span class="time-slot">1-2<br><small>08:00</small></span>
-                            <div class="course-cell math">高等数学<br><small>王教授 A-301</small></div>
-                            <div class="course-cell english">大学英语<br><small>李老师 B-205</small></div>
-                            <div class="course-cell math">高等数学<br><small>王教授 A-301</small></div>
-                            <div class="course-cell empty"></div>
-                            <div class="course-cell english">大学英语<br><small>李老师 B-205</small></div>
-                        </div>
-                        <div class="timetable-row">
-                            <span class="time-slot">3-4<br><small>10:00</small></span>
-                            <div class="course-cell empty"></div>
-                            <div class="course-cell data">数据结构<br><small>张教授 C-102</small></div>
-                            <div class="course-cell empty"></div>
-                            <div class="course-cell data">数据结构<br><small>张教授 C-102</small></div>
-                            <div class="course-cell empty"></div>
-                        </div>
-                        <div class="timetable-row">
-                            <span class="time-slot">5-6<br><small>14:00</small></span>
-                            <div class="course-cell politics">思政课<br><small>刘教授 D-101</small></div>
-                            <div class="course-cell empty"></div>
-                            <div class="course-cell physics">大学物理<br><small>陈教授 E-201</small></div>
-                            <div class="course-cell politics">思政课<br><small>刘教授 D-101</small></div>
-                            <div class="course-cell empty"></div>
-                        </div>
-                        <div class="timetable-row">
-                            <span class="time-slot">7-8<br><small>16:00</small></span>
-                            <div class="course-cell empty"></div>
-                            <div class="course-cell physics">大学物理<br><small>陈教授 E-201</small></div>
-                            <div class="course-cell empty"></div>
-                            <div class="course-cell empty"></div>
-                            <div class="course-cell pe">体育课<br><small>操场</small></div>
+                        <div class="table-week-info">当前是第 <span class="current-week-badge">8</span> 周</div>
+                        <div class="table-scroll">
+                            <div class="table-grid">
+                                <div class="table-row">
+                                    <div class="table-cell table-header table-time-header"></div>
+                                    <div class="table-cell table-header table-day-header">一</div>
+                                    <div class="table-cell table-header table-day-header">二</div>
+                                    <div class="table-cell table-header table-day-header">三</div>
+                                    <div class="table-cell table-header table-day-header">四</div>
+                                    <div class="table-cell table-header table-day-header">五</div>
+                                </div>
+                                <!-- 上午 -->
+                                <div class="table-row table-period-sep">
+                                    <div class="table-cell table-period-label"><span class="period-text">上午</span></div>
+                                    <div class="table-cell"></div><div class="table-cell"></div><div class="table-cell"></div><div class="table-cell"></div><div class="table-cell"></div>
+                                </div>
+                                <div class="table-row">
+                                    <div class="table-cell table-time-cell"><span class="time-text">第1节</span><span class="time-sub">08:00</span></div>
+                                    <div class="table-cell"><div class="table-course math"><span class="tc-name">高等数学</span><span class="tc-loc">A-301</span></div></div>
+                                    <div class="table-cell"><div class="table-course english"><span class="tc-name">大学英语</span><span class="tc-loc">B-205</span></div></div>
+                                    <div class="table-cell"><div class="table-course math"><span class="tc-name">高等数学</span><span class="tc-loc">A-301</span></div></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"><div class="table-course english"><span class="tc-name">大学英语</span><span class="tc-loc">B-205</span></div></div>
+                                </div>
+                                <div class="table-row">
+                                    <div class="table-cell table-time-cell"><span class="time-text">第2节</span><span class="time-sub">08:50</span></div>
+                                    <div class="table-cell"><div class="table-course math"><span class="tc-name">高等数学</span><span class="tc-loc">A-301</span></div></div>
+                                    <div class="table-cell"><div class="table-course english"><span class="tc-name">大学英语</span><span class="tc-loc">B-205</span></div></div>
+                                    <div class="table-cell"><div class="table-course math"><span class="tc-name">高等数学</span><span class="tc-loc">A-301</span></div></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"><div class="table-course english"><span class="tc-name">大学英语</span><span class="tc-loc">B-205</span></div></div>
+                                </div>
+                                <div class="table-row">
+                                    <div class="table-cell table-time-cell"><span class="time-text">第3节</span><span class="time-sub">09:50</span></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"><div class="table-course data"><span class="tc-name">数据结构</span><span class="tc-loc">C-102</span></div></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"><div class="table-course data"><span class="tc-name">数据结构</span><span class="tc-loc">C-102</span></div></div>
+                                    <div class="table-cell"></div>
+                                </div>
+                                <div class="table-row">
+                                    <div class="table-cell table-time-cell"><span class="time-text">第4节</span><span class="time-sub">10:40</span></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"><div class="table-course data"><span class="tc-name">数据结构</span><span class="tc-loc">C-102</span></div></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"><div class="table-course data"><span class="tc-name">数据结构</span><span class="tc-loc">C-102</span></div></div>
+                                    <div class="table-cell"></div>
+                                </div>
+                                <!-- 下午 -->
+                                <div class="table-row table-period-sep">
+                                    <div class="table-cell table-period-label"><span class="period-text">下午</span></div>
+                                    <div class="table-cell"></div><div class="table-cell"></div><div class="table-cell"></div><div class="table-cell"></div><div class="table-cell"></div>
+                                </div>
+                                <div class="table-row">
+                                    <div class="table-cell table-time-cell"><span class="time-text">第5节</span><span class="time-sub">14:00</span></div>
+                                    <div class="table-cell"><div class="table-course politics"><span class="tc-name">思政课</span><span class="tc-loc">D-101</span></div></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"><div class="table-course physics"><span class="tc-name">大学物理</span><span class="tc-loc">E-201</span></div></div>
+                                    <div class="table-cell"><div class="table-course politics"><span class="tc-name">思政课</span><span class="tc-loc">D-101</span></div></div>
+                                    <div class="table-cell"></div>
+                                </div>
+                                <div class="table-row">
+                                    <div class="table-cell table-time-cell"><span class="time-text">第6节</span><span class="time-sub">14:50</span></div>
+                                    <div class="table-cell"><div class="table-course politics"><span class="tc-name">思政课</span><span class="tc-loc">D-101</span></div></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"><div class="table-course physics"><span class="tc-name">大学物理</span><span class="tc-loc">E-201</span></div></div>
+                                    <div class="table-cell"><div class="table-course politics"><span class="tc-name">思政课</span><span class="tc-loc">D-101</span></div></div>
+                                    <div class="table-cell"></div>
+                                </div>
+                                <div class="table-row">
+                                    <div class="table-cell table-time-cell"><span class="time-text">第7节</span><span class="time-sub">15:50</span></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"><div class="table-course physics"><span class="tc-name">大学物理</span><span class="tc-loc">E-201</span></div></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"><div class="table-course pe"><span class="tc-name">体育课</span><span class="tc-loc">操场</span></div></div>
+                                </div>
+                                <div class="table-row">
+                                    <div class="table-cell table-time-cell"><span class="time-text">第8节</span><span class="time-sub">16:40</span></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"><div class="table-course physics"><span class="tc-name">大学物理</span><span class="tc-loc">E-201</span></div></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"></div>
+                                    <div class="table-cell"><div class="table-course pe"><span class="tc-name">体育课</span><span class="tc-loc">操场</span></div></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 作业管理 - 用 section 包裹 -->
-                <div class="section">
-                    <div class="section-header">
-                        <h3>作业管理</h3>
-                        <span class="more">查看全部</span>
+                <!-- 周视图 -->
+                <div id="view-week" class="study-view">
+                    <div class="card">
+                        <div class="card-title">周一</div>
+                        <div class="course-list">
+                            <div class="course-item">
+                                <div class="course-time-col"><span class="course-time">08:00</span><span class="course-end">09:40</span></div>
+                                <div class="course-detail"><span class="cn">高等数学</span><span class="cl">📍A-301 · 王教授</span></div>
+                            </div>
+                            <div class="course-item">
+                                <div class="course-time-col"><span class="course-time">14:00</span><span class="course-end">15:40</span></div>
+                                <div class="course-detail"><span class="cn">思政课</span><span class="cl">📍D-101 · 刘教授</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">周二</div>
+                        <div class="course-list">
+                            <div class="course-item">
+                                <div class="course-time-col"><span class="course-time">08:00</span><span class="course-end">09:40</span></div>
+                                <div class="course-detail"><span class="cn">大学英语</span><span class="cl">📍B-205 · 李老师</span></div>
+                            </div>
+                            <div class="course-item">
+                                <div class="course-time-col"><span class="course-time">10:00</span><span class="course-end">11:40</span></div>
+                                <div class="course-detail"><span class="cn">数据结构</span><span class="cl">📍C-102 · 张教授</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">周三</div>
+                        <div class="course-list">
+                            <div class="course-item">
+                                <div class="course-time-col"><span class="course-time">08:00</span><span class="course-end">09:40</span></div>
+                                <div class="course-detail"><span class="cn">高等数学</span><span class="cl">📍A-301 · 王教授</span></div>
+                            </div>
+                            <div class="course-item">
+                                <div class="course-time-col"><span class="course-time">14:00</span><span class="course-end">15:40</span></div>
+                                <div class="course-detail"><span class="cn">大学物理</span><span class="cl">📍E-201 · 陈教授</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">周四</div>
+                        <div class="course-list">
+                            <div class="course-item">
+                                <div class="course-time-col"><span class="course-time">10:00</span><span class="course-end">11:40</span></div>
+                                <div class="course-detail"><span class="cn">数据结构</span><span class="cl">📍C-102 · 张教授</span></div>
+                            </div>
+                            <div class="course-item">
+                                <div class="course-time-col"><span class="course-time">14:00</span><span class="course-end">15:40</span></div>
+                                <div class="course-detail"><span class="cn">思政课</span><span class="cl">📍D-101 · 刘教授</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">周五</div>
+                        <div class="course-list">
+                            <div class="course-item">
+                                <div class="course-time-col"><span class="course-time">08:00</span><span class="course-end">09:40</span></div>
+                                <div class="course-detail"><span class="cn">大学英语</span><span class="cl">📍B-205 · 李老师</span></div>
+                            </div>
+                            <div class="course-item">
+                                <div class="course-time-col"><span class="course-time">16:00</span><span class="course-end">17:40</span></div>
+                                <div class="course-detail"><span class="cn">体育课</span><span class="cl">📍操场</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 日视图 -->
+                <div id="view-day" class="study-view">
+                    <div class="card">
+                        <div class="card-title">今日课程</div>
+                        <div class="course-list">
+                            <div class="course-item active-course">
+                                <div class="course-time-col"><span class="course-time">08:00</span><span class="course-end">09:40</span></div>
+                                <div class="course-detail"><span class="cn">高等数学</span><span class="cl">📍A-301 · 王教授</span></div>
+                                <div class="att-status att-attended"><span style="color:#fff;font-size:12px;">已签</span></div>
+                            </div>
+                            <div class="course-item">
+                                <div class="course-time-col"><span class="course-time">14:00</span><span class="course-end">15:40</span></div>
+                                <div class="course-detail"><span class="cn">思政课</span><span class="cl">📍D-101 · 刘教授</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 待完成作业（和手机端一致的复选框样式） -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">待完成作业</span>
+                        <span class="card-action">+ 添加</span>
                     </div>
                     <div class="homework-list">
-                        <div class="homework-item urgent">
-                            <div class="hw-dot urgent"></div>
+                        <div class="hw-item">
+                            <div class="hw-check urgent"></div>
                             <div class="hw-info">
-                                <h4>高数第三章习题</h4>
-                                <p>王教授 · 今天 23:59 截止</p>
+                                <span class="hw-name">高数第三章习题</span>
+                                <span class="hw-course">高等数学 · 王教授</span>
                             </div>
-                            <span class="hw-status urgent">紧急</span>
+                            <div class="hw-deadline">
+                                <span class="hw-date">今天</span>
+                                <span class="hw-countdown urgent">23:59</span>
+                            </div>
                         </div>
-                        <div class="homework-item">
-                            <div class="hw-dot pending"></div>
+                        <div class="hw-item">
+                            <div class="hw-check"></div>
                             <div class="hw-info">
-                                <h4>英语作文一篇</h4>
-                                <p>李老师 · 明天 18:00 截止</p>
+                                <span class="hw-name">英语作文一篇</span>
+                                <span class="hw-course">大学英语 · 李老师</span>
                             </div>
-                            <span class="hw-status pending">待交</span>
+                            <div class="hw-deadline">
+                                <span class="hw-date">明天</span>
+                                <span class="hw-countdown">18:00</span>
+                            </div>
                         </div>
-                        <div class="homework-item">
-                            <div class="hw-dot done"></div>
+                        <div class="hw-item">
+                            <div class="hw-check checked"><span class="hw-check-icon">✓</span></div>
                             <div class="hw-info">
-                                <h4>数据结构实验报告</h4>
-                                <p>张教授 · 已批改 92分</p>
+                                <span class="hw-name hw-done-text">数据结构实验报告</span>
+                                <span class="hw-course">数据结构 · 张教授</span>
                             </div>
-                            <span class="hw-status done">92分</span>
+                            <div class="hw-deadline">
+                                <span class="hw-date" style="color:var(--success);">92分</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 成绩 - 用 section 包裹 -->
-                <div class="section">
-                    <div class="section-header">
-                        <h3>成绩查询</h3>
-                    </div>
-                    <div class="grade-list">
-                        <div class="grade-row">
-                            <div class="grade-name">
-                                <h4>高等数学A</h4>
-                                <span class="grade-type">必修</span>
-                            </div>
-                            <div class="grade-detail">平时85 · 期中78 · 期末90</div>
-                            <div class="grade-score">86</div>
+                <!-- 出勤统计（和手机端一致） -->
+                <div class="card">
+                    <span class="card-title">出勤统计</span>
+                    <div class="attendance-row">
+                        <div class="att-item">
+                            <span class="att-value green">36</span>
+                            <span class="att-label">已签到</span>
                         </div>
-                        <div class="grade-row">
-                            <div class="grade-name">
-                                <h4>数据结构</h4>
-                                <span class="grade-type">必修</span>
-                            </div>
-                            <div class="grade-detail">平时92 · 期中88 · 期末91</div>
-                            <div class="grade-score">90</div>
+                        <div class="att-item">
+                            <span class="att-value red">2</span>
+                            <span class="att-label">已缺勤</span>
                         </div>
-                        <div class="grade-row">
-                            <div class="grade-name">
-                                <h4>大学英语</h4>
-                                <span class="grade-type">必修</span>
-                            </div>
-                            <div class="grade-detail">平时80 · 期中75 · 期末82</div>
-                            <div class="grade-score">79</div>
-                        </div>
-                        <div class="grade-row">
-                            <div class="grade-name">
-                                <h4>思政课</h4>
-                                <span class="grade-type">必修</span>
-                            </div>
-                            <div class="grade-detail">平时90 · 期中85 · 期末88</div>
-                            <div class="grade-score">88</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 考勤统计 - 用 section 包裹 -->
-                <div class="section">
-                    <div class="section-header">
-                        <h3>到课率统计</h3>
-                    </div>
-                    <div class="attendance-stats">
-                        <div class="attendance-circle">
-                            <svg viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="42" fill="none" stroke="#e0e0e0" stroke-width="8"/>
-                                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--primary)" stroke-width="8"
-                                    stroke-dasharray="263.9" stroke-dashoffset="26.4" stroke-linecap="round"
-                                    transform="rotate(-90 50 50)"/>
-                                <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="20" fill="#333" id="attRateCircle">90%</text>
-                            </svg>
-                        </div>
-                        <div class="attendance-detail">
-                            <div class="att-item"><span class="att-dot present"></span>出勤 <strong>36</strong>次</div>
-                            <div class="att-item"><span class="att-dot absent"></span>缺勤 <strong>2</strong>次</div>
-                            <div class="att-item"><span class="att-dot late"></span>迟到 <strong>2</strong>次</div>
-                            <div class="att-item"><span class="att-dot leave" style="background:#2196f3;"></span>请假 <strong>0</strong>次</div>
+                        <div class="att-item">
+                            <span class="att-value blue">90%</span>
+                            <span class="att-label">出勤率</span>
                         </div>
                     </div>
                 </div>

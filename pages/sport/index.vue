@@ -75,7 +75,7 @@
 					<view class="run-btn stop-btn" @tap="stopRun">
 						<text class="btn-text">&#x25A0; 结束</text>
 					</view>
-
+				</template>
 				<template v-if="paused">
 					<view class="run-btn resume-btn" @tap="resumeRun">
 						<text class="btn-text">&#x25B6; 继续</text>
