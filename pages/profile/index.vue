@@ -187,7 +187,6 @@
 						</view>
 					</view>
 				
-  <bottom-nav activeTab="/pages/profile/index" />
 </template>
 
 				<!-- 未认证状态 -->
@@ -236,6 +235,8 @@
 				</template>
 			</view>
 		</view>
+
+		<bottom-nav activeTab="/pages/profile/index" />
 	</view>
 </template>
 

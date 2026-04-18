@@ -50,13 +50,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  height: calc(100rpx + env(safe-area-inset-bottom));
+  height: 100rpx;
   padding-bottom: env(safe-area-inset-bottom);
-  background: rgba(245, 245, 245, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1rpx solid rgba(0, 0, 0, 0.1);
-  z-index: 999;
+  padding-bottom: constant(safe-area-inset-bottom);
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 1rpx solid rgba(0, 0, 0, 0.08);
+  z-index: 9999;
 }
 .bottom-nav-item {
   display: flex;
@@ -66,7 +65,6 @@ export default {
   flex: 1;
   height: 100%;
   gap: 2rpx;
-  transition: all 0.2s ease;
 }
 .bottom-nav-icon {
   font-size: 40rpx;
@@ -77,7 +75,7 @@ export default {
   color: #8e8e93;
 }
 .bottom-nav-item.active .bottom-nav-text {
-  color: #007aff;
+  color: #4361ee;
   font-weight: 600;
 }
 </style>
