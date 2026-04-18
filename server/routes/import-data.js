@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const XLSX = require('xlsx');
-const bcrypt = require('bcrypt');
-const { run, get, all } = require('../db');
+const { run, get, all, hashPassword } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
 
 router.use(authenticate);
@@ -86,9 +85,9 @@ async function importTeachers(rows) {
     const existing = get('SELECT id FROM users WHERE username = ?', [username]);
     if (existing) { skipped++; continue; }
 
-    const hashed = bcrypt.hashSync(password, 10);
-    run('INSERT INTO users (username, password, real_name, role, college, phone) VALUES (?, ?, ?, ?, ?, ?)',
-      [username, hashed, realName, 'teacher', college, phone]);
+    const { hash, salt } = hashPassword(password);
+    run('INSERT INTO users (username, password_hash, salt, real_name, role, college, phone) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [username, hash, salt, realName, 'teacher', college, phone]);
     success++;
   }
   return { success, skipped, errors, total: rows.length };
@@ -114,9 +113,9 @@ async function importStudents(rows) {
     const existingUsername = get('SELECT id FROM users WHERE username = ?', [username]);
     if (existingUsername) { skipped++; continue; }
 
-    const hashed = bcrypt.hashSync(password, 10);
-    run('INSERT INTO users (username, password, real_name, role, student_id, college, major, grade) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [username, hashed, realName, 'student', studentId, college, major, grade]);
+    const { hash, salt } = hashPassword(password);
+    run('INSERT INTO users (username, password_hash, salt, real_name, role, student_id, college, major, grade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [username, hash, salt, realName, 'student', studentId, college, major, grade]);
     success++;
   }
   return { success, skipped, errors, total: rows.length };
