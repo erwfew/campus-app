@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html><body><script>
+function crc32(buf) {
+  var c = 0xFFFFFFFF;
+  for (var i = 0; i < buf.length; i++) {
+    c ^= buf[i];
+    for (var j = 0; j < 8; j++) {
+      c = (c >>> 1) ^ (0xEDB88320 & (-(c & 1)));
+    }
+  }
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+function chunk(typeStr, data) {
+  var type = [];
+  for (var i = 0; i < typeStr.length; i++) type.push(typeStr.charCodeAt(i));
+  var len = [(data.length >>> 24) & 0xFF, (data.length >>> 16) & 0xFF, (data.length >>> 8) & 0xFF, data.length & 0xFF];
+  var typeData = type.concat(data);
+  var crc = crc32(typeData);
+  return len.concat(typeData, [(crc >>> 24) & 0xFF, (crc >>> 16) & 0xFF, (crc >>> 8) & 0xFF, crc & 0xFF]);
+}
+
+function makePng(r, g, b, s) {
+  s = s || 48;
+  var sig = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+  var ihdr = [(s>>>24)&0xFF,(s>>>16)&0xFF,(s>>>8)&0xFF,s&0xFF,(s>>>24)&0xFF,(s>>>16)&0xFF,(s>>>8)&0xFF,s&0xFF,8,2,0,0,0];
+
+  // Build raw image data
+  var rowBytes = 1 + s * 3;
+  var raw = new Uint8Array(rowBytes * s);
+  for (var y = 0; y < s; y++) {
+    var off = y * rowBytes;
+    raw[off] = 0;
+    for (var x = 0; x < s; x++) {
+      raw[off + 1 + x*3] = r;
+      raw[off + 1 + x*3 + 1] = g;
+      raw[off + 1 + x*3 + 2] = b;
+    }
+  }
+
+  // Use CompressionStream to deflate
+  // Actually let's use uncompressed DEFLATE blocks
+  // BTYPE=00 (stored)
+  var total = raw.length;
+  var blocks = [];
+  var off = 0;
+  var isLast = false;
+  while (!isLast) {
+    var blockLen = Math.min(total - off, 65535);
+    if (off + blockLen >= total) isLast = true;
+    // Header: BFINAL(1) BTYPE(00)(2) LEN(16) NLEN(16)
+    var header = (isLast ? 1 : 0); // BFINAL in bit 0, BTYPE=00 in bits 1-2
+    var hbyte = header; // bits 0-2: BFINAL BTYPE
+    var lo = blockLen & 0xFF;
+    var hi = (blockLen >>> 8) & 0xFF;
+    var nlo = (~blockLen) & 0xFF;
+    var nhi = ((~blockLen) >>> 8) & 0xFF;
+    // The 3 header bytes: [BFINAL|BTYPE(2bits)|pad], LEN_lo, LEN_hi, NLEN_lo, NLEN_hi
+    // Actually it's: byte0: BFINAL | BTYPE(2bits) | padding(5bits)
+    // byte1: LEN low byte, byte2: LEN high byte
+    // byte3: NLEN low byte, byte4: NLEN high byte
+    // That's 5 bytes header... wait no. Let me recount.
+    // Bit layout: BFINAL (1 bit) | BTYPE (2 bits) | padding to byte boundary (5 bits)
+    // Then LEN (16 bits) | NLEN (16 bits) = 4 bytes
+    // Total: 5 bytes header + data
+
+    // Hmm, actually: BFINAL is 1 bit, BTYPE is 2 bits = 3 bits
+    // Then immediately follows 16-bit LEN, then 16-bit NLEN
+    // So the first byte is: bits 0-2 = BFINAL(1) | BTYPE(2), bits 3-7 = 0 (padding to byte)
+    // Then bytes 1-2: LEN (little-endian)
+    // Then bytes 3-4: NLEN (little-endian)
+    // Total 5 bytes header
+
+    // Wait, I need to think about bit ordering. In DEFLATE, bits are packed LSB first.
+    // BFINAL is the first bit, BTYPE are the next 2 bits.
+    // So first byte: bit0=BFINAL, bit1=BTYPE0, bit2=BTYPE1, bits3-7=0
+    // Then 2 bytes LEN (LSB first), then 2 bytes NLEN (LSB first)
+
+    var b0 = (isLast ? 1 : 0) | (0 << 1); // BFINAL | BTYPE=00
+    var le = blockLen & 0xFFFF;
+    var nle = (~le) & 0xFFFF;
+
+    blocks.push(b0, le & 0xFF, (le >>> 8) & 0xFF, nle & 0xFF, (nle >>> 8) & 0xFF);
+    for (var i = 0; i < blockLen; i++) {
+      blocks.push(raw[off + i]);
+    }
+    off += blockLen;
+  }
+
+  // Zlib wrapper: header (2 bytes) + deflate data + adler32 (4 bytes)
+  var zlibData = [0x78, 0x01]; // zlib header (CMF=0x78, FLG=0x01 for no dict, fast compression)
+
+  // Compute Adler32
+  var s1 = 1, s2 = 0;
+  for (var i = 0; i < raw.length; i++) {
+    s1 = (s1 + raw[i]) % 65521;
+    s2 = (s2 + s1) % 65521;
+  }
+  var adler = ((s2 << 16) | s1) >>> 0;
+
+  zlibData = zlibData.concat(blocks);
+  zlibData.push((adler >>> 24) & 0xFF);
+  zlibData.push((adler >>> 16) & 0xFF);
+  zlibData.push((adler >>> 8) & 0xFF);
+  zlibData.push(adler & 0xFF);
+
+  var idat = chunk('IDAT', zlibData);
+  var iend = chunk('IEND', []);
+
+  return sig.concat(ihdr, idat, iend);
+}
+
+// Convert byte array to binary string
+function bytesToStr(arr) {
+  var s = '';
+  for (var i = 0; i < arr.length; i++) {
+    s += String.fromCharCode(arr[i] & 0xFF);
+  }
+  return s;
+}
+
+var icons = {
+  'home-active.png': [67, 97, 238],
+  'nav.png': [67, 233, 123],
+  'nav-active.png': [67, 233, 123],
+  'study.png': [102, 126, 234],
+  'study-active.png': [102, 126, 234],
+  'sport.png': [240, 147, 251],
+  'sport-active.png': [240, 147, 251],
+  'profile.png': [250, 112, 154],
+  'profile-active.png': [250, 112, 154],
+};
+
+var results = {};
+for (var name in icons) {
+  var rgb = icons[name];
+  var png = makePng(rgb[0], rgb[1], rgb[2]);
+  results[name] = png.length;
+}
+
+document.body.innerHTML = '<pre>' + JSON.stringify(results, null, 2) + '</pre>';
+
+// Store results globally
+window._pngResults = results;
+window._makePng = makePng;
+</script></body></html>

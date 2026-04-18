@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>生成地图标记图标</title>
+<style>
+body { font-family: sans-serif; padding: 20px; background: #f5f6fa; }
+h1 { color: #333; }
+.grid { display: flex; flex-wrap: wrap; gap: 20px; margin: 20px 0; }
+.item { text-align: center; background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.item canvas { display: block; margin: 0 auto 8px; }
+.item p { margin: 4px 0; font-size: 14px; color: #666; }
+.btn { display: inline-block; padding: 12px 32px; background: #4361ee; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin: 4px; }
+.btn:hover { background: #3451de; }
+#status { margin: 16px 0; color: #4caf50; font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>校园地图标记图标生成器</h1>
+<p>点击各个图标下方的"下载"按钮保存 PNG 文件到 <code>static/</code> 目录</p>
+<p><button class="btn" onclick="downloadAll()">一键下载全部图标</button></p>
+<p id="status"></p>
+<div class="grid" id="grid"></div>
+
+<script>
+const markers = [
+  { name: 'marker-teach',      color: [66, 165, 245] },
+  { name: 'marker-library',    color: [126, 87, 194] },
+  { name: 'marker-food',       color: [239, 83, 80] },
+  { name: 'marker-dorm',       color: [255, 152, 0] },
+  { name: 'marker-playground', color: [102, 187, 106] },
+  { name: 'marker-gym',        color: [171, 71, 188] },
+  { name: 'marker-lab',        color: [38, 166, 154] },
+  { name: 'marker-admin',      color: [92, 107, 192] },
+  { name: 'marker-activity',   color: [255, 112, 154] },
+  { name: 'marker-mylocation', color: null, isMyLocation: true }
+];
+
+function drawPin(ctx, size, [r, g, b]) {
+  const cx = size / 2, cyTop = size / 3, radius = size / 3;
+  ctx.clearRect(0, 0, size, size);
+
+  // 水滴形状
+  ctx.beginPath();
+  ctx.moveTo(cx, cyTop + radius);
+  ctx.arc(cx, cyTop, radius, 0, Math.PI * 2);
+  ctx.closePath();
+  // 尾部
+  const tailW = radius * 0.45;
+  const tailH = size - cyTop - radius + 4;
+  ctx.moveTo(cx - tailW, cyTop + radius * 0.6);
+  ctx.quadraticCurveTo(cx, cyTop + radius + tailH, cx + tailW, cyTop + radius * 0.6);
+  ctx.closePath();
+
+  ctx.fillStyle = `rgb(${r},${g},${b})`;
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 白色中心圆
+  ctx.beginPath();
+  ctx.arc(cx, cyTop, radius * 0.35, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+}
+
+function drawMyLocation(ctx, size) {
+  ctx.clearRect(0, 0, size, size);
+  const cx = size / 2, cy = size / 2;
+
+  // 外圈
+  ctx.beginPath();
+  ctx.arc(cx, cy, size / 3, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(67,97,238,0.3)';
+  ctx.fill();
+
+  // 内圈
+  ctx.beginPath();
+  ctx.arc(cx, cy, size / 5, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(67,97,238,0.85)';
+  ctx.fill();
+
+  // 中心白点
+  ctx.beginPath();
+  ctx.arc(cx, cy, size / 10, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+}
+
+const grid = document.getElementById('grid');
+markers.forEach(m => {
+  const div = document.createElement('div');
+  div.className = 'item';
+  const canvas = document.createElement('canvas');
+  canvas.width = 64; canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (m.isMyLocation) drawMyLocation(ctx, 64);
+  else drawPin(ctx, 64, m.color);
+  div.appendChild(canvas);
+  const p = document.createElement('p');
+  p.textContent = m.name + '.png';
+  div.appendChild(p);
+  const btn = document.createElement('button');
+  btn.className = 'btn';
+  btn.textContent = '下载';
+  btn.onclick = () => download(canvas, m.name + '.png');
+  div.appendChild(btn);
+  grid.appendChild(div);
+});
+
+function download(canvas, filename) {
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = filename;
+  a.click();
+}
+
+function downloadAll() {
+  markers.forEach((m, i) => {
+    setTimeout(() => {
+      const canvas = grid.children[i].querySelector('canvas');
+      download(canvas, m.name + '.png');
+    }, i * 300);
+  });
+  document.getElementById('status').textContent = '正在下载全部图标...';
+  setTimeout(() => {
+    document.getElementById('status').textContent = '全部下载完成！请将图标放到 static/ 目录下。';
+  }, markers.length * 300 + 500);
+}
+</script>
+</body>
+</html>

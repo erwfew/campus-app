@@ -1,0 +1,19 @@
+{
+    "version" : "1.0",
+    "configurations" : [
+        {
+            "customPlaygroundType" : "local",
+            "playground" : "custom",
+            "type" : "uni-app:app-android"
+        },
+        {
+            "customPlaygroundType" : "local",
+            "playground" : "custom",
+            "type" : "uni-app:app-ios"
+        },
+        {
+            "openVueDevtools" : true,
+            "type" : "uni-app:h5"
+        }
+    ]
+}

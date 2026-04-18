@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>效园�?- 学校管理�?/title>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+  <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 220px; background: #001529; color: #fff; flex-shrink: 0; }
+    .sidebar-logo { padding: 20px; font-size: 18px; font-weight: bold; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-logo span { color: #f5222d; }
+    .sidebar-menu { margin-top: 10px; }
+    .sidebar-menu .el-menu-item { color: rgba(255,255,255,0.7); }
+    .sidebar-menu .el-menu-item:hover, .sidebar-menu .el-menu-item.is-active { background: #f5222d; color: #fff; }
+    .main-content { flex: 1; display: flex; flex-direction: column; }
+    .top-bar { height: 56px; background: #fff; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    .top-bar-title { font-size: 16px; font-weight: 500; }
+    .top-bar-user { display: flex; align-items: center; gap: 8px; }
+    .content-area { flex: 1; padding: 24px; overflow-y: auto; }
+    .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .stat-card .label { font-size: 14px; color: #999; margin-bottom: 8px; }
+    .stat-card .value { font-size: 28px; font-weight: bold; }
+    .stat-card .value.blue { color: #409eff; }
+    .stat-card .value.green { color: #67c23a; }
+    .stat-card .value.orange { color: #e6a23c; }
+    .stat-card .value.red { color: #f56c6c; }
+    .card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .login-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #f5222d 0%, #fa541c 100%); }
+    .login-box { background: #fff; border-radius: 12px; padding: 40px; width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .login-box h2 { text-align: center; margin-bottom: 8px; color: #333; }
+    .login-box .subtitle { text-align: center; color: #999; margin-bottom: 30px; font-size: 14px; }
+    .notice-item { padding: 16px; border-bottom: 1px solid #f0f0f0; }
+    .notice-item:last-child { border-bottom: none; }
+    .notice-item .title { font-weight: 500; margin-bottom: 4px; }
+    .notice-item .meta { font-size: 12px; color: #999; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 登录�?-->
+    <div v-if="!isLoggedIn" class="login-page">
+      <div class="login-box">
+        <h2>🏫 效园�?/h2>
+        <div class="subtitle">学校管理端登�?/div>
+        <el-form :model="loginForm" @keyup.enter="handleLogin">
+          <el-form-item>
+            <el-input v-model="loginForm.username" placeholder="管理员账�? size="large" prefix-icon="User" />
+          </el-form-item>
+          <el-form-item>
+            <el-input v-model="loginForm.password" placeholder="密码" type="password" size="large" prefix-icon="Lock" show-password />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="danger" size="large" style="width:100%" :loading="loginLoading" @click="handleLogin">�?�?/el-button>
+          </el-form-item>
+        </el-form>
+        <div style="text-align:center;font-size:12px;color:#999;margin-top:16px;">
+          默认账号: admin / admin123
+        </div>
+      </div>
+    </div>
+
+    <!-- 主界�?-->
+    <div v-else class="layout">
+      <div class="sidebar">
+        <div class="sidebar-logo">效园�?<span>管理�?/span></div>
+        <el-menu :default-active="currentPage" class="sidebar-menu" @select="handleMenuSelect" background-color="transparent" text-color="rgba(255,255,255,0.7)" active-text-color="#fff">
+          <el-menu-item index="dashboard"><el-icon><DataAnalysis /></el-icon>数据概览</el-menu-item>
+          <el-menu-item index="teachers"><el-icon><User /></el-icon>教师管理</el-menu-item>
+          <el-menu-item index="students"><el-icon><UserFilled /></el-icon>学生管理</el-menu-item>
+          <el-menu-item index="courses"><el-icon><Reading /></el-icon>课程管理</el-menu-item>
+          <el-menu-item index="notices"><el-icon><Bell /></el-icon>全校公告</el-menu-item>
+        </el-menu>
+      </div>
+
+      <div class="main-content">
+        <div class="top-bar">
+          <div class="top-bar-title">{{ pageTitle }}</div>
+          <div class="top-bar-user">
+            <el-avatar :size="32" style="background:#f5222d">�?/el-avatar>
+            <span>{{ currentUser.realName }}</span>
+            <el-button type="info" size="small" text @click="handleLogout" style="margin-left:8px;">退�?/el-button>
+          </div>
+        </div>
+
+        <div class="content-area">
+          <!-- 数据概览 -->
+          <template v-if="currentPage === 'dashboard'">
+            <div class="stat-cards">
+              <div class="stat-card"><div class="label">教师总数</div><div class="value blue">{{ dashStats.teachers || 0 }}</div></div>
+              <div class="stat-card"><div class="label">学生总数</div><div class="value green">{{ dashStats.students || 0 }}</div></div>
+              <div class="stat-card"><div class="label">活跃课程</div><div class="value orange">{{ dashStats.courses || 0 }}</div></div>
+              <div class="stat-card"><div class="label">全校公告</div><div class="value red">{{ dashStats.activeNotices || 0 }}</div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+              <div class="card">
+                <div class="card-title">各学院课程分�?/div>
+                <div v-for="c in collegeStats" :key="c.college" style="display:flex;align-items:center;padding:8px 0;">
+                  <span style="width:120px;font-size:14px;">{{ c.college }}</span>
+                  <div style="flex:1;margin:0 12px;">
+                    <div style="background:#f0f2f5;border-radius:4px;height:20px;overflow:hidden;">
+                      <div :style="{width: (c.count / maxCollegeCount * 100) + '%', background:'#f5222d', height:'100%', borderRadius:'4px', transition:'width 0.5s'}"></div>
+                    </div>
+                  </div>
+                  <span style="font-size:14px;font-weight:600;color:#f5222d;">{{ c.count }}</span>
+                </div>
+                <div v-if="collegeStats.length === 0" class="empty-state" style="padding:30px;">暂无数据</div>
+              </div>
+              <div class="card">
+                <div class="card-title">最�?天考勤概览</div>
+                <div v-for="a in attendanceStats" :key="a.date" style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;">
+                  <span style="width:80px;font-size:14px;">{{ a.date }}</span>
+                  <div style="flex:1;display:flex;gap:8px;font-size:13px;">
+                    <span style="color:#67c23a;">✅{{ a.present }}</span>
+                    <span style="color:#f56c6c;">❌{{ a.absent }}</span>
+                    <span style="color:#e6a23c;">⏰{{ a.late }}</span>
+                    <span style="color:#909399;">📋{{ a.leave }}</span>
+                  </div>
+                </div>
+                <div v-if="attendanceStats.length === 0" class="empty-state" style="padding:30px;">暂无考勤数据</div>
+              </div>
+            </div>
+          </template>
+
+          <!-- 教师管理 -->
+          <template v-if="currentPage === 'teachers'">
+            <div class="card">
+              <div class="card-title">
+                教师管理
+                <el-button type="danger" size="small" @click="showUserDialog('teacher')">+ 添加教师</el-button>
+              </div>
+              <div style="margin-bottom:16px;">
+                <el-input v-model="teacherSearch" placeholder="搜索教师姓名/用户�? style="width:250px;" @input="loadTeachers" clearable>
+                  <template #prefix><el-icon><Search /></el-icon></template>
+                </el-input>
+              </div>
+              <el-table :data="teachers" stripe v-loading="loadingTeachers">
+                <el-table-column prop="username" label="用户�? width="120" />
+                <el-table-column prop="realName" label="姓名" width="100" />
+                <el-table-column prop="college" label="学院" />
+                <el-table-column prop="phone" label="手机�? width="130" />
+                <el-table-column prop="email" label="邮箱" width="180" />
+                <el-table-column prop="createdAt" label="创建时间" width="170">
+                  <template #default="scope">{{ formatDate(scope.row.createdAt) }}</template>
+                </el-table-column>
+                <el-table-column label="操作" width="150">
+                  <template #default="scope">
+                    <el-button type="text" size="small" @click="editUser(scope.row)">编辑</el-button>
+                    <el-button type="text" size="small" style="color:#f56c6c;" @click="deleteUser(scope.row)">删除</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </template>
+
+          <!-- 学生管理 -->
+          <template v-if="currentPage === 'students'">
+            <div class="card">
+              <div class="card-title">
+                学生管理
+                <el-button type="danger" size="small" @click="showUserDialog('student')">+ 添加学生</el-button>
+              </div>
+              <div style="margin-bottom:16px;display:flex;gap:12px;">
+                <el-input v-model="studentSearch" placeholder="搜索姓名/学号" style="width:250px;" @input="loadStudents" clearable>
+                  <template #prefix><el-icon><Search /></el-icon></template>
+                </el-input>
+              </div>
+              <el-table :data="students" stripe v-loading="loadingStudents">
+                <el-table-column prop="studentId" label="学号" width="120" />
+                <el-table-column prop="realName" label="姓名" width="100" />
+                <el-table-column prop="college" label="学院" />
+                <el-table-column prop="username" label="账号" width="120" />
+                <el-table-column prop="createdAt" label="创建时间" width="170">
+                  <template #default="scope">{{ formatDate(scope.row.createdAt) }}</template>
+                </el-table-column>
+                <el-table-column label="操作" width="150">
+                  <template #default="scope">
+                    <el-button type="text" size="small" @click="editUser(scope.row)">编辑</el-button>
+                    <el-button type="text" size="small" style="color:#f56c6c;" @click="deleteUser(scope.row)">删除</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <div style="margin-top:16px;text-align:center;">
+                <el-pagination background layout="prev, pager, next" :total="studentTotal" :page-size="20" v-model:current-page="studentPage" @current-change="loadStudents" />
+              </div>
+            </div>
+          </template>
+
+          <!-- 课程管理 -->
+          <template v-if="currentPage === 'courses'">
+            <div class="card">
+              <div class="card-title">
+                课程管理
+                <el-button type="danger" size="small" @click="showCourseDialog = true">+ 创建课程</el-button>
+              </div>
+              <el-table :data="allCourses" stripe v-loading="loadingCourses">
+                <el-table-column prop="name" label="课程名称" />
+                <el-table-column prop="teacherName" label="授课教师" width="100" />
+                <el-table-column prop="type" label="类型" width="80">
+                  <template #default="scope">
+                    <el-tag :type="scope.row.type === '必修' ? 'danger' : 'success'" size="small">{{ scope.row.type }}</el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="studentCount" label="选课人数" width="90" />
+                <el-table-column prop="location" label="教室" width="120" />
+                <el-table-column prop="semester" label="学期" width="100" />
+                <el-table-column label="操作" width="150">
+                  <template #default="scope">
+                    <el-button type="text" size="small" @click="archiveCourse(scope.row)">归档</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+
+            <el-dialog v-model="showCourseDialog" title="创建课程" width="500px">
+              <el-form :model="newCourse" label-width="80px">
+                <el-form-item label="课程名称"><el-input v-model="newCourse.name" /></el-form-item>
+                <el-form-item label="授课教师">
+                  <el-select v-model="newCourse.teacherId" placeholder="选择教师" style="width:100%">
+                    <el-option v-for="t in teachers" :key="t.id" :label="t.realName" :value="t.id" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="教室"><el-input v-model="newCourse.location" /></el-form-item>
+                <el-form-item label="类型">
+                  <el-select v-model="newCourse.type" style="width:100%">
+                    <el-option label="必修" value="必修" />
+                    <el-option label="选修" value="选修" />
+                    <el-option label="公�? value="公�? />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="学期"><el-input v-model="newCourse.semester" placeholder="�?2025-1" /></el-form-item>
+                <el-form-item label="学院"><el-input v-model="newCourse.college" /></el-form-item>
+              </el-form>
+              <template #footer>
+                <el-button @click="showCourseDialog = false">取消</el-button>
+                <el-button type="danger" @click="createCourse" :loading="creatingCourse">创建</el-button>
+              </template>
+            </el-dialog>
+          </template>
+
+          <!-- 全校公告 -->
+          <template v-if="currentPage === 'notices'">
+            <div class="card">
+              <div class="card-title">
+                全校公告
+                <el-button type="danger" size="small" @click="showNoticeDialog = true">+ 发布公告</el-button>
+              </div>
+              <div v-loading="loadingNotices">
+                <div class="notice-item" v-for="n in schoolNotices" :key="n.id" style="display:flex;align-items:center;">
+                  <div style="flex:1;">
+                    <div class="title">
+                      <el-tag v-if="n.important" type="danger" size="small" style="margin-right:8px;">重要</el-tag>
+                      {{ n.title }}
+                    </div>
+                    <div class="meta">{{ n.author }} · {{ n.date }}</div>
+                  </div>
+                  <el-button type="text" size="small" style="color:#f56c6c;" @click="deleteNotice(n)">删除</el-button>
+                </div>
+                <div v-if="schoolNotices.length === 0" class="empty-state">
+                  <div>暂无公告</div>
+                </div>
+              </div>
+            </div>
+
+            <el-dialog v-model="showNoticeDialog" title="发布全校公告" width="500px">
+              <el-form :model="newNotice" label-width="80px">
+                <el-form-item label="公告标题"><el-input v-model="newNotice.title" /></el-form-item>
+                <el-form-item label="公告内容"><el-input v-model="newNotice.content" type="textarea" :rows="4" /></el-form-item>
+                <el-form-item label="是否重要">
+                  <el-switch v-model="newNotice.important" />
+                </el-form-item>
+              </el-form>
+              <template #footer>
+                <el-button @click="showNoticeDialog = false">取消</el-button>
+                <el-button type="danger" @click="publishNotice" :loading="publishingNotice">发布</el-button>
+              </template>
+            </el-dialog>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- 用户表单弹窗 -->
+    <el-dialog v-model="showUserForm" :title="editingUser ? '编辑用户' : '添加用户'" width="500px">
+      <el-form :model="userForm" label-width="80px">
+        <el-form-item label="用户�?><el-input v-model="userForm.username" :disabled="!!editingUser" /></el-form-item>
+        <el-form-item label="姓名"><el-input v-model="userForm.realName" /></el-form-item>
+        <el-form-item label="密码" v-if="!editingUser"><el-input v-model="userForm.password" type="password" show-password /></el-form-item>
+        <el-form-item label="密码" v-else><el-input v-model="userForm.password" placeholder="留空则不修改" type="password" show-password /></el-form-item>
+        <el-form-item label="学院"><el-input v-model="userForm.college" /></el-form-item>
+        <el-form-item label="手机�?><el-input v-model="userForm.phone" /></el-form-item>
+        <el-form-item label="邮箱"><el-input v-model="userForm.email" /></el-form-item>
+        <el-form-item label="学号" v-if="userForm.role === 'student'"><el-input v-model="userForm.studentId" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showUserForm = false">取消</el-button>
+        <el-button type="danger" @click="saveUser" :loading="savingUser">保存</el-button>
+      </template>
+    </el-dialog>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, reactive, onMounted } = Vue;
+
+    const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3000/api' : location.origin + '/api';
+    function getToken() { return localStorage.getItem('admin_token'); }
+    async function api(path, options = {}) {
+      const headers = { 'Content-Type': 'application/json' };
+      const token = getToken();
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const resp = await fetch(API_BASE + path, { ...options, headers: { ...headers, ...options.headers } });
+      const data = await resp.json();
+      if (!data.success) throw new Error(data.error?.message || '请求失败');
+      return data.data;
+    }
+
+    const app = createApp({
+      setup() {
+        const isLoggedIn = ref(!!getToken());
+        const loginLoading = ref(false);
+        const loginForm = reactive({ username: 'admin', password: 'admin123' });
+        const currentUser = reactive({});
+
+        const handleLogin = async () => {
+          loginLoading.value = true;
+          try {
+            const data = await api('/auth/login', { method: 'POST', body: JSON.stringify(loginForm) });
+            localStorage.setItem('admin_token', data.token);
+            Object.assign(currentUser, data.user);
+            isLoggedIn.value = true;
+            ElementPlus.ElMessage.success('登录成功�?);
+            loadAll();
+          } catch (e) { ElementPlus.ElMessage.error(e.message); }
+          finally { loginLoading.value = false; }
+        };
+
+        const handleLogout = () => { localStorage.removeItem('admin_token'); isLoggedIn.value = false; };
+
+        const currentPage = ref('dashboard');
+        const pageTitle = computed(() => ({ dashboard:'数据概览', teachers:'教师管理', students:'学生管理', courses:'课程管理', notices:'全校公告' }[currentPage.value] || ''));
+        const handleMenuSelect = (i) => { currentPage.value = i; };
+
+        // Dashboard
+        const dashStats = reactive({});
+        const attendanceStats = ref([]);
+        const collegeStats = ref([]);
+        const maxCollegeCount = computed(() => Math.max(...collegeStats.value.map(c => c.count), 1));
+
+        const loadDashboard = async () => {
+          try {
+            const data = await api('/admin/dashboard');
+            Object.assign(dashStats, data.stats);
+            attendanceStats.value = data.attendanceStats;
+            collegeStats.value = data.collegeStats;
+          } catch (e) { console.error(e); }
+        };
+
+        // Users
+        const teachers = ref([]);
+        const loadingTeachers = ref(false);
+        const teacherSearch = ref('');
+        const students = ref([]);
+        const loadingStudents = ref(false);
+        const studentSearch = ref('');
+        const studentPage = ref(1);
+        const studentTotal = ref(0);
+
+        const loadTeachers = async () => {
+          loadingTeachers.value = true;
+          try {
+            const data = await api(`/admin/users?role=teacher&keyword=${teacherSearch.value}`);
+            teachers.value = data.list;
+          } catch (e) { console.error(e); }
+          finally { loadingTeachers.value = false; }
+        };
+
+        const loadStudents = async () => {
+          loadingStudents.value = true;
+          try {
+            const data = await api(`/admin/users?role=student&keyword=${studentSearch.value}&page=${studentPage.value}`);
+            students.value = data.list;
+            studentTotal.value = data.total;
+          } catch (e) { console.error(e); }
+          finally { loadingStudents.value = false; }
+        };
+
+        // User form
+        const showUserForm = ref(false);
+        const editingUser = ref(null);
+        const savingUser = ref(false);
+        const userForm = reactive({ username: '', password: '', realName: '', role: 'teacher', college: '', phone: '', email: '', studentId: '' });
+
+        const showUserDialog = (role) => {
+          editingUser.value = null;
+          Object.assign(userForm, { username: '', password: '', realName: '', role, college: '', phone: '', email: '', studentId: '' });
+          showUserForm.value = true;
+        };
+
+        const editUser = (user) => {
+          editingUser.value = user;
+          Object.assign(userForm, { username: user.username, password: '', realName: user.realName, role: user.role, college: user.college, phone: user.phone || '', email: user.email || '', studentId: user.studentId || '' });
+          showUserForm.value = true;
+        };
+
+        const saveUser = async () => {
+          savingUser.value = true;
+          try {
+            if (editingUser.value) {
+              await api(`/admin/users/${editingUser.value.id}`, { method: 'PUT', body: JSON.stringify(userForm) });
+            } else {
+              await api('/admin/users', { method: 'POST', body: JSON.stringify(userForm) });
+            }
+            ElementPlus.ElMessage.success('保存成功�?);
+            showUserForm.value = false;
+            loadTeachers(); loadStudents();
+          } catch (e) { ElementPlus.ElMessage.error(e.message); }
+          finally { savingUser.value = false; }
+        };
+
+        const deleteUser = async (user) => {
+          try {
+            await ElMessageBox.confirm(`确定删除用户�?{user.realName}」？`, '确认删除', { type: 'warning' });
+            await api(`/admin/users/${user.id}`, { method: 'DELETE' });
+            ElementPlus.ElMessage.success('已删�?);
+            loadTeachers(); loadStudents();
+          } catch (e) { if (e !== 'cancel') ElementPlus.ElMessage.error(e.message || '删除失败'); }
+        };
+
+        // Courses
+        const allCourses = ref([]);
+        const loadingCourses = ref(false);
+        const showCourseDialog = ref(false);
+        const creatingCourse = ref(false);
+        const newCourse = reactive({ name: '', teacherId: null, location: '', type: '必修', semester: '', college: '' });
+
+        const loadCourses = async () => {
+          loadingCourses.value = true;
+          try { allCourses.value = await api('/admin/courses'); }
+          catch (e) { console.error(e); }
+          finally { loadingCourses.value = false; }
+        };
+
+        const createCourse = async () => {
+          if (!newCourse.name || !newCourse.teacherId) return ElementPlus.ElMessage.warning('请填写课程名称和教师');
+          creatingCourse.value = true;
+          try {
+            await api('/admin/courses', { method: 'POST', body: JSON.stringify(newCourse) });
+            ElementPlus.ElMessage.success('课程创建成功�?);
+            showCourseDialog.value = false;
+            loadCourses();
+          } catch (e) { ElementPlus.ElMessage.error(e.message); }
+          finally { creatingCourse.value = false; }
+        };
+
+        const archiveCourse = async (course) => {
+          try {
+            await ElMessageBox.confirm(`确定归档课程�?{course.name}」？`, '确认', { type: 'warning' });
+            await api(`/admin/courses/${course.id}`, { method: 'DELETE' });
+            ElementPlus.ElMessage.success('已归�?);
+            loadCourses();
+          } catch (e) { if (e !== 'cancel') ElementPlus.ElMessage.error(e.message); }
+        };
+
+        // Notices
+        const schoolNotices = ref([]);
+        const loadingNotices = ref(false);
+        const showNoticeDialog = ref(false);
+        const publishingNotice = ref(false);
+        const newNotice = reactive({ title: '', content: '', important: false });
+
+        const loadNotices = async () => {
+          loadingNotices.value = true;
+          try { schoolNotices.value = await api('/admin/notices'); }
+          catch (e) { console.error(e); }
+          finally { loadingNotices.value = false; }
+        };
+
+        const publishNotice = async () => {
+          if (!newNotice.title) return ElMessage.warning('请填写标�?);
+          publishingNotice.value = true;
+          try {
+            await api('/admin/notices', { method: 'POST', body: JSON.stringify(newNotice) });
+            ElementPlus.ElMessage.success('公告已发布！');
+            showNoticeDialog.value = false;
+            Object.assign(newNotice, { title: '', content: '', important: false });
+            loadNotices(); loadDashboard();
+          } catch (e) { ElementPlus.ElMessage.error(e.message); }
+          finally { publishingNotice.value = false; }
+        };
+
+        const deleteNotice = async (n) => {
+          try {
+            await ElMessageBox.confirm('确定删除此公告？', '确认', { type: 'warning' });
+            await api(`/admin/notices/${n.id}`, { method: 'DELETE' });
+            ElementPlus.ElMessage.success('已删�?);
+            loadNotices(); loadDashboard();
+          } catch (e) { if (e !== 'cancel') ElementPlus.ElMessage.error(e.message); }
+        };
+
+        const formatDate = (d) => d ? new Date(d).toLocaleString('zh-CN') : '-';
+
+        const loadAll = () => { loadDashboard(); loadTeachers(); loadStudents(); loadCourses(); loadNotices(); };
+
+        onMounted(async () => {
+          if (isLoggedIn.value) {
+            try {
+              const user = await api('/auth/me');
+              Object.assign(currentUser, user);
+              loadAll();
+            } catch (e) { handleLogout(); }
+          }
+        });
+
+        return {
+          isLoggedIn, loginForm, loginLoading, handleLogin, handleLogout, currentUser,
+          currentPage, pageTitle, handleMenuSelect,
+          dashStats, attendanceStats, collegeStats, maxCollegeCount,
+          teachers, loadingTeachers, teacherSearch, loadTeachers,
+          students, loadingStudents, studentSearch, studentPage, studentTotal, loadStudents,
+          showUserForm, editingUser, savingUser, userForm, showUserDialog, editUser, saveUser, deleteUser,
+          allCourses, loadingCourses, showCourseDialog, creatingCourse, newCourse, loadCourses, createCourse, archiveCourse,
+          schoolNotices, loadingNotices, showNoticeDialog, publishingNotice, newNotice, loadNotices, publishNotice, deleteNotice,
+          formatDate,
+        };
+      }
+    });
+
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) app.component(key, component);
+    app.use(ElementPlus);
+    app.mount('#app');
+  </script>
+</body>
+</html>

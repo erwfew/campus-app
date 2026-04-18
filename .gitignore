@@ -1,0 +1,36 @@
+# 依赖
+node_modules/
+npm-debug.log*
+
+# 构建输出
+dist/
+build/
+
+# HBuilderX
+.uni/
+uni.preview/
+
+# Electron
+release/
+
+# 环境变量
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+logs/
+
+# 临时文件
+tmp/
+temp/

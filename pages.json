@@ -1,0 +1,106 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/navigation/index",
+      "style": {
+        "navigationBarTitleText": "校园智能导航"
+      }
+    },
+    {
+      "path": "pages/navigation/webview",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/study/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/course/import",
+      "style": {
+        "navigationBarTitleText": "导入课程"
+      }
+    },
+    {
+      "path": "pages/course/add",
+      "style": {
+        "navigationBarTitleText": "添加课程"
+      }
+    },
+    {
+      "path": "pages/course/edu-import",
+      "style": {
+        "navigationBarTitleText": "教务系统导入"
+      }
+    },
+    {
+      "path": "pages/course/batch-import",
+      "style": {
+        "navigationBarTitleText": "批量导入"
+      }
+    },
+    {
+      "path": "pages/sport/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/creative/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/mascot/index",
+      "style": {
+        "navigationBarTitleText": "虚拟吉祥物"
+      }
+    },
+    {
+      "path": "pages/rank/index",
+      "style": {
+        "navigationBarTitleText": "校园排行"
+      }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": {
+        "navigationBarTitleText": "个人中心"
+      }
+    },
+    {
+      "path": "pages/verify/index",
+      "style": {
+        "navigationBarTitleText": "学信网认证"
+      }
+    },
+    {
+      "path": "pages/notice/list",
+      "style": {
+        "navigationBarTitleText": "校园公告"
+      }
+    },
+    {
+      "path": "pages/notice/detail",
+      "style": {
+        "navigationBarTitleText": "公告详情"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "效园通",
+    "navigationBarBackgroundColor": "#4361ee",
+    "backgroundColor": "#f5f6fa"
+  }
+}

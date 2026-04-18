@@ -1,0 +1,12 @@
+{
+  "name": "campus-app",
+  "version": "1.0.0",
+  "description": "效园通 - 一站式校园生态综合平台",
+  "scripts": {
+    "start": "node server/app.js",
+    "postinstall": "cd server && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
