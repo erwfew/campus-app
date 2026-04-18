@@ -1,0 +1,26 @@
+
+╔══════════════════════════════════════╗
+║       效园通 API 服务已启动           ║
+║       http://localhost:3333           ║
+╚══════════════════════════════════════╝
+
+接口列表：
+  POST /api/auth/login      登录
+  POST /api/auth/register   注册
+  GET  /api/student/*        学生端
+  GET  /api/homework         作业
+  GET  /api/notices          公告
+  GET  /api/teacher/*        教师端
+  GET  /api/admin/*          管理端
+  POST /api/import/preview   教务导入
+
+页面：
+  http://localhost:3333/
+  http://localhost:3333/admin/teacher/index.html
+  http://localhost:3333/admin/school/index.html
+[DB] 数据库已加载
+[DB] 数据库初始化完成
+[Seed] 开始填充种子数据...
+[Seed] 数据库已有数据，跳过填充
+[App] 数据库就绪
+[21:52:19] GET /api/health
