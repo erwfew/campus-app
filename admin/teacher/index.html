@@ -53,6 +53,7 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
     <button class="active" onclick="showPage('courses',this)">我的课程</button>
     <button onclick="showPage('homework',this)">作业管理</button>
     <button onclick="showPage('grades',this)">成绩录入</button>
+    <button onclick="showPage('attendance',this)">课堂考勤</button>
     <button onclick="showPage('notices',this)">课程公告</button>
   </div>
   <div id="contentArea"></div>
@@ -134,6 +135,12 @@ async function showPage(page, btn) {
         (data || []).map(function(h) {
           return '<tr><td>' + h.title + '</td><td>' + h.course + '</td><td>' + (h.deadline || '-') + '</td><td>' + h.submitted + '/' + h.total + '</td></tr>';
         }).join('') + '</table></div>';
+    } else if (page === 'attendance') {
+      var courses = await api('/teacher/courses');
+      area.innerHTML = '<div class="card"><h3>课堂考勤</h3><p style="color:#999;margin-bottom:12px;">选择课程查看学生考勤</p><table><tr><th>课程名称</th><th>上课时间</th><th>学生数</th><th>操作</th></tr>' +
+        courses.map(function(c) {
+          return '<tr><td>' + c.name + '</td><td>周' + weekDayStr(c.weekDay) + '</td><td>' + c.studentCount + '人</td><td><button onclick="showAttendance(' + c.id + ',\'' + c.name + '\')" style="padding:4px 12px;background:#4361ee;color:#fff;border:none;border-radius:6px;cursor:pointer;">查看考勤</button></td></tr>';
+        }).join('') + '</table></div>';
     } else if (page === 'grades') {
       var courses = await api('/teacher/courses');
       area.innerHTML = '<div class="card"><h3>成绩录入</h3><p style="color:#999;margin-bottom:12px;">选择课程查看成绩</p><table><tr><th>课程名称</th><th>学生数</th><th>操作</th></tr>' +
@@ -166,6 +173,52 @@ async function showGrades(courseId) {
   } catch (e) {
     area.innerHTML = '<div class="card"><p style="color:#f44336;">' + e.message + '</p></div>';
   }
+}
+
+async function showAttendance(courseId, courseName) {
+  var area = document.getElementById('contentArea');
+  area.innerHTML = '<div class="card"><p>加载中...</p></div>';
+  try {
+    var d = await api('/teacher/courses/' + courseId + '/students');
+    var today = new Date().toISOString().slice(0, 10);
+    var students = d.students || [];
+    var html = '<div class="card"><h3>课堂考勤 - ' + courseName + '</h3>';
+    html += '<p style="color:#999;margin-bottom:12px;">日期: ' + today + '</p>';
+    html += '<button onclick="markAllAttendance(' + courseId + ',\'present\')" style="padding:4px 12px;background:#52c41a;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-bottom:12px;margin-right:8px;">全部签到</button>';
+    html += '<button onclick="showPage(\'attendance\')" style="padding:4px 12px;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;margin-bottom:12px;">返回</button>';
+    html += '<table><tr><th>学号</th><th>姓名</th><th>出勤率</th><th>今日状态</th><th>操作</th></tr>';
+    html += students.map(function(s) {
+      var rate = s.attendanceRate || 0;
+      var color = rate >= 90 ? '#52c41a' : rate >= 70 ? '#faad14' : '#f44336';
+      return '<tr><td>' + s.studentId + '</td><td>' + s.realName + '</td><td style="color:' + color + ';font-weight:bold;">' + rate + '%</td><td>' + (s.todayStatus || '-') + '</td><td>' +
+        '<button onclick="markAttendance(' + courseId + ',' + s.id + ',\'present\')" style="padding:2px 8px;background:#52c41a;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-right:4px;font-size:12px;">出勤</button>' +
+        '<button onclick="markAttendance(' + courseId + ',' + s.id + ',\'absent\')" style="padding:2px 8px;background:#f44336;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-right:4px;font-size:12px;">缺勤</button>' +
+        '<button onclick="markAttendance(' + courseId + ',' + s.id + ',\'late\')" style="padding:2px 8px;background:#faad14;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">迟到</button>' +
+        '</td></tr>';
+    }).join('');
+    html += '</table></div>';
+    area.innerHTML = html;
+  } catch (e) {
+    area.innerHTML = '<div class="card"><p style="color:#f44336;">' + e.message + '</p></div>';
+  }
+}
+
+async function markAttendance(courseId, studentId, status) {
+  try {
+    await api('/teacher/attendance', { method: 'POST', body: JSON.stringify({ courseId: courseId, records: [{ studentId: studentId, status: status }] }) });
+    alert('考勤已提交');
+    showAttendance(courseId, '');
+  } catch (e) { alert('提交失败: ' + e.message); }
+}
+
+async function markAllAttendance(courseId, status) {
+  try {
+    var d = await api('/teacher/courses/' + courseId + '/students');
+    var records = (d.students || []).map(function(s) { return { studentId: s.id, status: status }; });
+    await api('/teacher/attendance', { method: 'POST', body: JSON.stringify({ courseId: courseId, records: records }) });
+    alert('全部签到完成，共 ' + records.length + ' 人');
+    showAttendance(courseId, '');
+  } catch (e) { alert('提交失败: ' + e.message); }
 }
 
 // 自动登录
