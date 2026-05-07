@@ -96,12 +96,30 @@ export default {
 				String(now.getMonth() + 1).padStart(2, '0') + '-' +
 				String(now.getDate()).padStart(2, '0')
 
-			uni.setStorageSync('campus_school_verify', JSON.stringify({
+			var verifyData = {
 				verified: true,
 				schoolName: '已通过学信网认证',
 				studentId: '',
 				verifyDate: dateStr
-			}))
+			}
+
+			// 保存到本地
+			try {
+				uni.setStorageSync('campus_school_verify', JSON.stringify(verifyData))
+			} catch (e) {}
+
+			// 保存到服务器
+			var token = uni.getStorageSync('campus_token')
+			if (token) {
+				uni.request({
+					url: 'http://192.168.31.98:3000/api/auth/verify',
+					method: 'POST',
+					header: { 'Authorization': 'Bearer ' + token },
+					data: { schoolName: '已通过学信网认证', studentId: '' },
+					success: function() {},
+					fail: function() {}
+				})
+			}
 
 			this.resultSuccess = true
 			this.resultMsg = '学信网认证已通过，您的在校学生身份已验证。'

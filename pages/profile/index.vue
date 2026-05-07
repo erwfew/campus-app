@@ -288,6 +288,7 @@ components: { BottomNav },
 		this.loadMascotData()
 		this.checkSignIn()
 		this.loadVerifyData()
+		this.fetchVerifyFromApi()
 	},
 	methods: {
 loadProfile() {
@@ -446,6 +447,30 @@ loadProfile() {
 				}
 			} catch (e) {}
 		},
+		fetchVerifyFromApi() {
+			var _this = this
+			var token = uni.getStorageSync('campus_token')
+			if (!token) return
+			uni.request({
+				url: 'http://192.168.31.98:3000/api/auth/verify',
+				method: 'GET',
+				header: { 'Authorization': 'Bearer ' + token },
+				success: function(res) {
+					if (res.data && res.data.success && res.data.data) {
+						var d = res.data.data
+						if (d.verified) {
+							_this.verified = true
+							_this.schoolName = d.schoolName || ''
+							_this.verifyDate = d.verifyDate || ''
+							uni.setStorageSync('campus_school_verify', JSON.stringify({
+								verified: true, schoolName: d.schoolName, verifyDate: d.verifyDate
+							}))
+						}
+					}
+				},
+				fail: function() {}
+			})
+		},
 		showSchoolVerify() {
 			if (this.verified) {
 				// 已认证，显示认证信息弹窗
@@ -476,6 +501,9 @@ loadProfile() {
 			this.verifyStep = 1
 
 			var _this = this
+			var schoolName = this.verifySchool.trim()
+			var studentId = this.verifyStudentId.trim()
+
 			// 模拟学信网认证流程
 			setTimeout(function() {
 				_this.verifyStep = 2
@@ -485,19 +513,38 @@ loadProfile() {
 						_this.verifyStep = 4
 						setTimeout(function() {
 							// 认证成功
-							_this.verified = true
-							_this.schoolName = _this.verifySchool.trim()
-							_this.studentId = _this.verifyStudentId.trim()
 							var now = new Date()
-							_this.verifyDate = now.getFullYear() + '-' +
-								(now.getMonth() + 1) + '-' + now.getDate()
+							var dateStr = now.getFullYear() + '-' +
+								String(now.getMonth() + 1).padStart(2, '0') + '-' +
+								String(now.getDate()).padStart(2, '0')
 
-							uni.setStorageSync('campus_school_verify', JSON.stringify({
-								verified: true,
-								schoolName: _this.schoolName,
-								studentId: _this.studentId,
-								verifyDate: _this.verifyDate
-							}))
+							_this.verified = true
+							_this.schoolName = schoolName
+							_this.studentId = studentId
+							_this.verifyDate = dateStr
+
+							// 保存到本地存储
+							try {
+								uni.setStorageSync('campus_school_verify', JSON.stringify({
+									verified: true, schoolName: schoolName,
+									studentId: studentId, verifyDate: dateStr
+								}))
+							} catch (e) {
+								console.error('localStorage save failed:', e)
+							}
+
+							// 保存到服务器
+							var token = uni.getStorageSync('campus_token')
+							if (token) {
+								uni.request({
+									url: 'http://192.168.31.98:3000/api/auth/verify',
+									method: 'POST',
+									header: { 'Authorization': 'Bearer ' + token },
+									data: { schoolName: schoolName, studentId: studentId },
+									success: function() { console.log('Verify saved to server') },
+									fail: function() { console.log('Verify server save failed, local saved') }
+								})
+							}
 
 							_this.verifying = false
 							uni.showToast({ title: '认证成功！', icon: 'success' })
@@ -519,6 +566,17 @@ loadProfile() {
 						_this.studentId = ''
 						_this.verifyDate = ''
 						_this.showVerifyPanel = false
+						// 同步到服务器
+						var token = uni.getStorageSync('campus_token')
+						if (token) {
+							uni.request({
+								url: 'http://192.168.31.98:3000/api/auth/verify',
+								method: 'DELETE',
+								header: { 'Authorization': 'Bearer ' + token },
+								success: function() {},
+								fail: function() {}
+							})
+						}
 						uni.showToast({ title: '已解除认证', icon: 'none' })
 					}
 				}

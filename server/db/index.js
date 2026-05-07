@@ -59,10 +59,22 @@ async function initDb() {
       phone TEXT DEFAULT '',
       email TEXT DEFAULT '',
       student_id TEXT DEFAULT '',
+      verified INTEGER DEFAULT 0,
+      school_name TEXT DEFAULT '',
+      verify_date TEXT DEFAULT '',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // 迁移：给旧表加 verified 相关字段（如果缺失）
+  try {
+    const cols = db.exec("PRAGMA table_info(users)");
+    const colNames = cols.length > 0 ? cols[0].values.map(r => r[1]) : [];
+    if (!colNames.includes('verified')) db.run('ALTER TABLE users ADD COLUMN verified INTEGER DEFAULT 0');
+    if (!colNames.includes('school_name')) db.run('ALTER TABLE users ADD COLUMN school_name TEXT DEFAULT \"\"');
+    if (!colNames.includes('verify_date')) db.run('ALTER TABLE users ADD COLUMN verify_date TEXT DEFAULT \"\"');
+  } catch (e) { /* 新库不需要迁移 */ }
 
   db.run(`
     CREATE TABLE IF NOT EXISTS courses (
@@ -203,6 +215,47 @@ function saveDb() {
 }
 
 /**
+ * 防抖保存 — 短时间内多次写入只触发一次磁盘写入
+ * 通过 requestSave() 代替直接调用 saveDb()
+ */
+let saveTimer = null;
+let savePending = false;
+
+function requestSave(debounceMs) {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+  }
+  savePending = true;
+  saveTimer = setTimeout(() => {
+    if (savePending) {
+      try {
+        saveDb();
+        savePending = false;
+      } catch (e) {
+        console.error('[DB] 防抖保存失败:', e.message);
+      }
+    }
+    saveTimer = null;
+  }, debounceMs || 2000);
+}
+
+/** 进程退出前强制保存 */
+function flushSave() {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+  if (savePending) {
+    try {
+      saveDb();
+      savePending = false;
+    } catch (e) {
+      console.error('[DB] flush 保存失败:', e.message);
+    }
+  }
+}
+
+/**
  * 执行查询并返回结果数组
  */
 function all(sql, params = []) {
@@ -258,4 +311,4 @@ function verifyPassword(password, hash, salt) {
   return computed === hash;
 }
 
-module.exports = { getDb, initDb, saveDb, all, get, count, run, hashPassword, verifyPassword };
+module.exports = { getDb, initDb, saveDb, requestSave, flushSave, all, get, count, run, hashPassword, verifyPassword };

@@ -3,9 +3,10 @@ const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const config = require('./config');
-const { initDb, saveDb, all } = require('./db');
+const { initDb, saveDb, flushSave, all } = require('./db');
 const seed = require('./db/seed');
 const { errorHandler } = require('./middleware/errorHandler');
+const rateLimit = require('./middleware/rateLimit');
 const importRoutes = require('./routes/import');
 const importDataRoutes = require('./routes/import-data');
 const homeworkRoutes = require('./routes/homework');
@@ -13,13 +14,6 @@ const authRoutes = require('./routes/auth');
 const teacherRoutes = require('./routes/teacher');
 const adminRoutes = require('./routes/admin');
 const studentRoutes = require('./routes/student');
-
-// 初始化数据库（异步，启动前完成）
-(async () => {
-  await initDb();
-  await seed();
-  console.log('[App] 数据库就绪');
-})();
 
 const app = express();
 
@@ -42,12 +36,13 @@ app.use('/static', express.static(path.join(__dirname, '..', 'static')));
 app.use('/admin', express.static(path.join(__dirname, '..', 'admin')));
 app.use(express.static(path.join(__dirname, '..'), { index: 'index.html' }));
 
-// 每次写请求后自动保存数据库
+// 写请求后防抖保存数据库（不再每次写入都全量落盘）
 app.use((req, res, next) => {
   const origEnd = res.end.bind(res);
   res.end = function(...args) {
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
-      try { saveDb(); } catch (e) { /* 忽略 */ }
+      const { requestSave } = require('./db');
+      requestSave(config.dbSaveDebounceMs);
     }
     return origEnd(...args);
   };
@@ -95,6 +90,10 @@ app.get('/api/notices', (req, res) => {
 
 // ==================== 路由挂载 ====================
 
+// 登录/注册接口挂载限流（防暴力破解）
+app.use('/api/auth/login', rateLimit());
+app.use('/api/auth/register', rateLimit());
+
 app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/homework', homeworkRoutes);
@@ -111,30 +110,55 @@ app.use((req, res) => {
 // 错误处理
 app.use(errorHandler);
 
-// ==================== 启动 ====================
+// ==================== 启动（先初始化数据库，再监听端口） ====================
 
-const server = app.listen(config.port, '0.0.0.0', () => {
-  console.log('\n╔══════════════════════════════════════╗');
-  console.log('║       效园通 API 服务已启动           ║');
-  console.log(`║       http://localhost:${config.port}           ║`);
-  console.log('╚══════════════════════════════════════╝\n');
-  console.log('接口列表：');
-  console.log('  POST /api/auth/login      登录');
-  console.log('  POST /api/auth/register   注册');
-  console.log('  GET  /api/student/*        学生端');
-  console.log('  GET  /api/homework         作业');
-  console.log('  GET  /api/notices          公告');
-  console.log('  GET  /api/teacher/*        教师端');
-  console.log('  GET  /api/admin/*          管理端');
-  console.log('  POST /api/import/preview   教务导入');
-  console.log('\n页面：');
-  console.log(`  http://localhost:${config.port}/`);
-  console.log(`  http://localhost:${config.port}/admin/teacher/index.html`);
-  console.log(`  http://localhost:${config.port}/admin/school/index.html`);
-});
+async function start() {
+  try {
+    await initDb();
+    await seed();
+    console.log('[App] 数据库就绪');
 
-// 优雅关闭
-process.on('SIGTERM', () => { console.log('SIGTERM...'); saveDb(); server.close(() => process.exit(0)); });
-process.on('SIGINT', () => { console.log('SIGINT...'); saveDb(); server.close(() => process.exit(0)); });
+    const server = app.listen(config.port, '0.0.0.0', () => {
+      console.log('\n╔══════════════════════════════════════╗');
+      console.log('║       效园通 API 服务已启动           ║');
+      console.log(`║       http://localhost:${config.port}           ║`);
+      console.log('╚══════════════════════════════════════╝\n');
+      console.log('接口列表：');
+      console.log('  POST /api/auth/login      登录（已限流）');
+      console.log('  POST /api/auth/register   注册（已限流）');
+      console.log('  GET  /api/student/*        学生端');
+      console.log('  GET  /api/homework         作业');
+      console.log('  GET  /api/notices          公告');
+      console.log('  GET  /api/teacher/*        教师端');
+      console.log('  GET  /api/admin/*          管理端');
+      console.log('  POST /api/import/preview   教务导入');
+      console.log('\n页面：');
+      console.log(`  http://localhost:${config.port}/`);
+      console.log(`  http://localhost:${config.port}/admin/teacher/index.html`);
+      console.log(`  http://localhost:${config.port}/admin/school/index.html`);
+    });
+
+    // 优雅关闭
+    function shutdown(signal) {
+      console.log(`${signal} 收到，正在关闭...`);
+      flushSave(); // 确保防抖中的数据落盘
+      saveDb();    // 最终保存
+      server.close(() => {
+        console.log('[App] 服务已关闭');
+        process.exit(0);
+      });
+      // 5秒后强制退出
+      setTimeout(() => { process.exit(1); }, 5000);
+    }
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => shutdown('SIGINT'));
+
+  } catch (err) {
+    console.error('[App] 启动失败:', err);
+    process.exit(1);
+  }
+}
+
+start();
 
 module.exports = app;

@@ -126,6 +126,75 @@ router.get('/me', (req, res, next) => {
 });
 
 /**
+ * GET /api/auth/verify
+ * 获取认证状态
+ */
+router.get('/verify', (req, res, next) => {
+  try {
+    const { authenticate } = require('../middleware/auth');
+    authenticate(req, res, () => {
+      const user = get('SELECT verified, school_name, verify_date FROM users WHERE id = ?', [req.user.id]);
+      res.json({
+        success: true,
+        data: {
+          verified: !!(user && user.verified),
+          schoolName: user ? user.school_name || '' : '',
+          verifyDate: user ? user.verify_date || '' : ''
+        }
+      });
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * POST /api/auth/verify
+ * 提交认证
+ */
+router.post('/verify', (req, res, next) => {
+  try {
+    const { authenticate } = require('../middleware/auth');
+    authenticate(req, res, () => {
+      const { schoolName, studentId } = req.body;
+      if (!schoolName) {
+        throw new AppError('INVALID_PARAMS', '请输入学校名称', 400);
+      }
+      const dateStr = new Date().toISOString().slice(0, 10);
+      run(
+        'UPDATE users SET verified = 1, school_name = ?, student_id = COALESCE(NULLIF(?, \'\'), student_id), verify_date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [schoolName, studentId || '', dateStr, req.user.id]
+      );
+      res.json({
+        success: true,
+        data: { verified: true, schoolName, verifyDate: dateStr }
+      });
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * DELETE /api/auth/verify
+ * 解除认证
+ */
+router.delete('/verify', (req, res, next) => {
+  try {
+    const { authenticate } = require('../middleware/auth');
+    authenticate(req, res, () => {
+      run(
+        'UPDATE users SET verified = 0, school_name = \'\', verify_date = \'\', updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [req.user.id]
+      );
+      res.json({ success: true, data: { verified: false } });
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
  * PUT /api/auth/password
  * 修改密码
  */
