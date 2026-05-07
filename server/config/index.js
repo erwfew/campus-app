@@ -8,7 +8,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') }
 module.exports = {
   port: parseInt(process.env.PORT, 10) || 3000,
   corsOrigin: process.env.CORS_ORIGIN || '*',
-  jwtSecret: process.env.JWT_SECRET,
+  jwtSecret: process.env.JWT_SECRET || 'campus-app-secret-change-in-production',
   jwtExpires: process.env.JWT_EXPIRES || '7d',
   requestTimeout: 15000,
   maxRedirects: 5,
