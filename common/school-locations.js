@@ -178,4 +178,4 @@ function getDefaultLocations() {
   }
 }
 
-module.exports = { SCALE, SCHOOLS, getSchoolLocations, getDefaultLocations }
+export { SCALE, SCHOOLS, getSchoolLocations, getDefaultLocations }
