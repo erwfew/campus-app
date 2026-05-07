@@ -245,7 +245,8 @@ const schoolLocationsDB = {
 		locations: [
 			// === 1号校区 (西溪路896号) ===
 			{ id: 1, name: '1号校区教学楼', latitude: 30.2534, longitude: 120.0742, type: 'teach', typeName: '教学楼', openTime: '7:30 - 21:30', desc: '1号校区主教学楼' },
-			{ id: 2, name: '图书馆', latitude: 30.2531, longitude: 120.0748, type: 'library', typeName: '图书馆', openTime: '8:00 - 21:30', desc: '纸质藏书30万册，电子阅览室' },
+			{ id: 2, name: '图书馆-南区', latitude: 30.2583, longitude: 120.0765, type: 'library', typeName: '图书馆', openTime: '8:00 - 21:30', desc: '主图书馆，藏书30万册' },
+			{ id: 3, name: '图书馆-北区', latitude: 30.2577, longitude: 120.0762, type: 'library', typeName: '图书馆', openTime: '8:00 - 21:30', desc: '电子阅览室、自习区' },
 			{ id: 3, name: '雪之梦食堂', latitude: 30.2546, longitude: 120.0743, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '1号校区食堂' },
 			{ id: 4, name: '学生公寓楼', latitude: 30.2542, longitude: 120.0750, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '1号校区学生公寓' },
 			{ id: 5, name: '学生公寓6幢', latitude: 30.2538, longitude: 120.0730, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '1号校区公寓6幢' },
