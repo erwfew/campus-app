@@ -56,27 +56,73 @@ export default {
 		if (existing) {
 			try {
 				var v = JSON.parse(existing)
-				if (v.verified) return // 已认证，跳过
+				if (v.verified && v.schoolName && v.schoolName !== '已通过学信网认证') return // 已有完整认证
 			} catch(e) {}
 		}
-		// 没有认证数据，直接弹窗确认
+		// 没有认证数据，弹窗让用户输入学校
 		var _this = this
 		setTimeout(function() {
 			uni.showModal({
 				title: '学信网认证',
-				content: '请确认您已在学信网完成登录认证',
-				confirmText: '已完成',
-				cancelText: '还没有',
+				editable: true,
+				placeholderText: '请输入您的学校全称',
+				confirmText: '确认认证',
+				cancelText: '取消',
 				success: function(res) {
 					if (res.confirm) {
-						_this.onConfirmLogin()
+						var schoolName = (res.content || '').trim()
+						if (!schoolName) {
+							uni.showToast({ title: '请输入学校名称', icon: 'none' })
+							uni.navigateBack()
+							return
+						}
+						_this.saveVerify(schoolName)
 					} else {
 						uni.navigateBack()
 					}
 				}
 			})
-		}, 1500)
+		}, 800)
 	},
+	methods: {
+		saveVerify(schoolName) {
+			var now = new Date()
+			var dateStr = now.getFullYear() + '-' +
+				String(now.getMonth() + 1).padStart(2, '0') + '-' +
+				String(now.getDate()).padStart(2, '0')
+
+			var verifyData = {
+				verified: true,
+				schoolName: schoolName,
+				studentId: '',
+				verifyDate: dateStr
+			}
+
+			try {
+				uni.setStorageSync('campus_school_verify', JSON.stringify(verifyData))
+				console.log('[Verify] saved:', JSON.stringify(verifyData))
+				var check = uni.getStorageSync('campus_school_verify')
+				console.log('[Verify] readback:', check)
+			} catch (e) {
+				console.error('[Verify] save FAILED:', e)
+			}
+
+			var token = uni.getStorageSync('campus_token')
+			if (token) {
+				uni.request({
+					url: 'http://192.168.31.98:3000/api/auth/verify',
+					method: 'POST',
+					header: { 'Authorization': 'Bearer ' + token },
+					data: { schoolName: schoolName, studentId: '' },
+					success: function() {},
+					fail: function() {}
+				})
+			}
+
+			this.resultSuccess = true
+			this.resultMsg = schoolName + ' 认证已通过'
+			this.showResult = true
+		},
 	methods: {
 		onWebMessage(event) {
 			// 接收 web-view 传回的消息
