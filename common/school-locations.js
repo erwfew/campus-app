@@ -244,26 +244,31 @@ const schoolLocationsDB = {
 		center: { lat: 30.2560, lng: 120.0753 },
 		locations: [
 			// === 1号校区 (西溪路896号) ===
-			{ id: 1, name: '1号校区教学楼', latitude: 30.2534, longitude: 120.0742, type: 'teach', typeName: '教学楼', openTime: '7:30 - 21:30', desc: '1号校区主教学楼' },
-			{ id: 2, name: '图书馆-南区', latitude: 30.2583, longitude: 120.0765, type: 'library', typeName: '图书馆', openTime: '8:00 - 21:30', desc: '主图书馆，藏书30万册' },
-			{ id: 3, name: '图书馆-北区', latitude: 30.2577, longitude: 120.0762, type: 'library', typeName: '图书馆', openTime: '8:00 - 21:30', desc: '电子阅览室、自习区' },
-			{ id: 3, name: '老食堂（蜜雪冰城）', latitude: 30.2546, longitude: 120.0743, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '1号校区老食堂' },
-			{ id: 4, name: '新食堂', latitude: 30.2552, longitude: 120.0748, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '1号校区新食堂，老食堂东北方向' },
-			{ id: 5, name: '丁哥石锅饭', latitude: 30.2545, longitude: 120.0742, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '校内特色餐饮' },
-			{ id: 4, name: '学生公寓楼', latitude: 30.2542, longitude: 120.0750, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '1号校区学生公寓' },
-			{ id: 5, name: '学生公寓6幢', latitude: 30.2538, longitude: 120.0730, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '1号校区公寓6幢' },
-			{ id: 6, name: '学生公寓7幢', latitude: 30.2542, longitude: 120.0752, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '1号校区公寓7幢' },
-			{ id: 7, name: '1号校区实验楼', latitude: 30.2533, longitude: 120.0753, type: 'lab', typeName: '实验楼', openTime: '8:00 - 21:00', desc: '实训教学中心' },
-			{ id: 8, name: '创业产业园', latitude: 30.2534, longitude: 120.0754, type: 'activity', typeName: '活动中心', openTime: '8:00 - 22:00', desc: '创新创业孵化基地' },
+			{ id: 1, name: '第一教学楼', latitude: 30.253149, longitude: 120.075825, type: 'teach', typeName: '教学楼', openTime: '7:30 - 21:30', desc: '1号校区主教学楼' },
+			{ id: 2, name: '实验楼', latitude: 30.253313, longitude: 120.075342, type: 'lab', typeName: '实验楼', openTime: '8:00 - 21:00', desc: '1号校区实验楼' },
+			{ id: 3, name: '雪之梦（老食堂）', latitude: 30.254646, longitude: 120.074331, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '1号校区老食堂' },
+			{ id: 4, name: '新食堂', latitude: 30.2552, longitude: 120.0748, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '1号校区新食堂' },
+			{ id: 5, name: '丁哥石锅饭', latitude: 30.254521, longitude: 120.074221, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '校内特色餐饮' },
+			{ id: 6, name: '学生公寓楼', latitude: 30.25415, longitude: 120.075003, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '1号校区学生公寓' },
+			{ id: 7, name: '学生公寓6幢', latitude: 30.253772, longitude: 120.072956, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '1号校区公寓6幢' },
+			{ id: 8, name: '学生公寓7幢', latitude: 30.254221, longitude: 120.075182, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '1号校区公寓7幢' },
+			{ id: 9, name: '学生公寓8幢', latitude: 30.254533, longitude: 120.07519, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '1号校区公寓8幢' },
+			{ id: 10, name: '学生公寓12幢', latitude: 30.2552, longitude: 120.074774, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '1号校区公寓12幢' },
+			{ id: 11, name: '学生公寓1(庄苑)', latitude: 30.25469, longitude: 120.073293, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '庄苑公寓1幢' },
+			{ id: 12, name: '学生公寓2(庄苑)', latitude: 30.254374, longitude: 120.072682, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '庄苑公寓2幢' },
 			// === 2号校区 (荆长路3号) ===
-			{ id: 9, name: '金翰教学楼', latitude: 30.2588, longitude: 120.0760, type: 'teach', typeName: '教学楼', openTime: '7:30 - 21:30', desc: '2号校区主教学楼' },
-			{ id: 10, name: '2号校区实训楼', latitude: 30.2589, longitude: 120.0771, type: 'lab', typeName: '实验楼', openTime: '8:00 - 21:00', desc: '汽车维修、数控加工、护理实训' },
-			{ id: 11, name: '教学办公楼', latitude: 30.2578, longitude: 120.0771, type: 'admin', typeName: '行政楼', openTime: '8:30 - 17:00', desc: '2号校区行政办公' },
-			{ id: 12, name: '2号校区学生公寓', latitude: 30.2574, longitude: 120.0767, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '2号校区学生公寓' },
-			{ id: 13, name: '2号校区学生公寓1幢', latitude: 30.2572, longitude: 120.0774, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '2号校区公寓1幢' },
-			{ id: 14, name: '实训楼4幢', latitude: 30.2577, longitude: 120.0764, type: 'lab', typeName: '实验楼', openTime: '8:00 - 21:00', desc: '2号校区实训4幢' },
-			{ id: 15, name: '号实训楼', latitude: 30.2591, longitude: 120.0756, type: 'lab', typeName: '实验楼', openTime: '8:00 - 21:00', desc: '2号校区实训楼' },
-			{ id: 16, name: '教学楼北区', latitude: 30.2588, longitude: 120.0759, type: 'teach', typeName: '教学楼', openTime: '7:30 - 21:30', desc: '2号校区北区教学楼' }
+			{ id: 13, name: '金翰教学楼', latitude: 30.258755, longitude: 120.076041, type: 'teach', typeName: '教学楼', openTime: '7:30 - 21:30', desc: '2号校区主教学楼' },
+			{ id: 14, name: '教学楼北区', latitude: 30.258815, longitude: 120.075869, type: 'teach', typeName: '教学楼', openTime: '7:30 - 21:30', desc: '2号校区北区教学楼' },
+			{ id: 15, name: '图书馆-南区', latitude: 30.258253, longitude: 120.076457, type: 'library', typeName: '图书馆', openTime: '8:00 - 21:30', desc: '主图书馆，藏书30万册' },
+			{ id: 16, name: '图书馆-北区', latitude: 30.257721, longitude: 120.07619, type: 'library', typeName: '图书馆', openTime: '8:00 - 21:30', desc: '电子阅览室、自习区' },
+			{ id: 17, name: '2号校区实训楼', latitude: 30.258872, longitude: 120.077103, type: 'lab', typeName: '实验楼', openTime: '8:00 - 21:00', desc: '汽车维修、数控加工实训' },
+			{ id: 18, name: '号实训楼', latitude: 30.25912, longitude: 120.075647, type: 'lab', typeName: '实验楼', openTime: '8:00 - 21:00', desc: '2号校区实训楼' },
+			{ id: 19, name: '消防综合实训楼', latitude: 30.258652, longitude: 120.07687, type: 'lab', typeName: '实验楼', openTime: '8:00 - 21:00', desc: '消防专业实训' },
+			{ id: 20, name: '万向产教融合实训基地', latitude: 30.256646, longitude: 120.076636, type: 'lab', typeName: '实验楼', openTime: '8:00 - 21:00', desc: '产教融合实训' },
+			{ id: 21, name: '教学办公楼', latitude: 30.257912, longitude: 120.077132, type: 'admin', typeName: '行政楼', openTime: '8:30 - 17:00', desc: '2号校区行政办公' },
+			{ id: 22, name: '2号校区学生公寓', latitude: 30.257382, longitude: 120.07671, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '2号校区学生公寓' },
+			{ id: 23, name: '2号校区学生公寓1幢', latitude: 30.257193, longitude: 120.077446, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '2号校区公寓1幢' },
+			{ id: 24, name: '1号教学楼(2号校区)', latitude: 30.256628, longitude: 120.076716, type: 'teach', typeName: '教学楼', openTime: '7:30 - 21:30', desc: '2号校区1号楼' }
 		],
 		locationTypes: [
 			{ name: '教学楼', type: 'teach' },
@@ -271,8 +276,7 @@ const schoolLocationsDB = {
 			{ name: '食堂', type: 'food' },
 			{ name: '宿舍', type: 'dorm' },
 			{ name: '实验楼', type: 'lab' },
-			{ name: '行政楼', type: 'admin' },
-			{ name: '活动中心', type: 'activity' }
+			{ name: '行政楼', type: 'admin' }
 		]
 	}
 }
