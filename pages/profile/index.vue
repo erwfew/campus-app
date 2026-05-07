@@ -478,11 +478,16 @@ loadProfile() {
 			})
 		},
 		showSchoolVerify() {
+			// 如果学校名称是旧的占位符，跳转重新认证
+			if (this.schoolName === '已通过学信网认证' || !this.schoolName) {
+				uni.navigateTo({
+					url: '/pages/verify/index?name=' + encodeURIComponent(this.userName)
+				})
+				return
+			}
 			if (this.verified) {
-				// 已认证，显示认证信息弹窗
 				this.showVerifyPanel = true
 			} else {
-				// 未认证，跳转学信网 web-view
 				uni.navigateTo({
 					url: '/pages/verify/index?name=' + encodeURIComponent(this.userName)
 				})
