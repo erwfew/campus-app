@@ -436,15 +436,13 @@ export default {
 		getMyLocation() {
 			this.locationLoading = true
 			uni.getLocation({
-				type: 'wgs84',
+				type: 'gcj02',
 				success: (res) => {
-					// wgs84 转 gcj02
-					const gcj = this.wgs84ToGcj02(res.latitude, res.longitude)
-					this.myLatitude = gcj.lat
-					this.myLongitude = gcj.lng
+					this.myLatitude = res.latitude
+					this.myLongitude = res.longitude
 					this.hasRealLocation = true
 					this.locationLoading = false
-					console.log('定位成功:', this.myLatitude, this.myLongitude)
+					console.log('定位成功(gcj02):', this.myLatitude, this.myLongitude)
 				},
 				fail: (err) => {
 					console.log('定位失败:', JSON.stringify(err))
