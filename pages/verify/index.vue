@@ -56,36 +56,74 @@ export default {
 		if (existing) {
 			try {
 				var v = JSON.parse(existing)
-				if (v.verified && v.schoolName && v.schoolName !== '已通过学信网认证') return // 已有完整认证
+				if (v.verified && v.schoolName && v.schoolName !== '已通过学信网认证' && v.studentId) return // 已有完整认证
 			} catch(e) {}
 		}
-		// 没有认证数据，弹窗让用户输入学校
+		// 没有完整认证数据，弹窗让用户输入
 		var _this = this
 		setTimeout(function() {
 			uni.showModal({
 				title: '学信网认证',
+				content: '请确认您已在学信网完成登录，接下来请输入学校和学号',
+				confirmText: '开始认证',
+				cancelText: '取消',
+				success: function(res) {
+					if (res.confirm) {
+						_this.inputSchool()
+					} else {
+						uni.navigateBack()
+					}
+				}
+			})
+		}, 500)
+	},
+	methods: {
+		inputSchool() {
+			var _this = this
+			uni.showModal({
+				title: '第一步：输入学校名称',
 				editable: true,
-				placeholderText: '请输入您的学校全称',
-				confirmText: '确认认证',
+				placeholderText: '例如：杭州万向职业技术学院',
+				confirmText: '下一步',
 				cancelText: '取消',
 				success: function(res) {
 					if (res.confirm) {
 						var schoolName = (res.content || '').trim()
 						if (!schoolName) {
 							uni.showToast({ title: '请输入学校名称', icon: 'none' })
-							uni.navigateBack()
 							return
 						}
-						_this.saveVerify(schoolName)
+						_this.inputStudentId(schoolName)
 					} else {
 						uni.navigateBack()
 					}
 				}
 			})
-		}, 800)
-	},
-	methods: {
-		saveVerify(schoolName) {
+		},
+		inputStudentId(schoolName) {
+			var _this = this
+			uni.showModal({
+				title: '第二步：输入学号',
+				editable: true,
+				placeholderText: '请输入您的学号',
+				confirmText: '确认认证',
+				cancelText: '返回',
+				success: function(res) {
+					if (res.confirm) {
+						var studentId = (res.content || '').trim()
+						if (!studentId) {
+							uni.showToast({ title: '请输入学号', icon: 'none' })
+							return
+						}
+						_this.saveVerify(schoolName, studentId)
+					} else {
+						// 返回上一步
+						_this.inputSchool()
+					}
+				}
+			})
+		},
+		saveVerify(schoolName, studentId) {
 			var now = new Date()
 			var dateStr = now.getFullYear() + '-' +
 				String(now.getMonth() + 1).padStart(2, '0') + '-' +
@@ -94,7 +132,7 @@ export default {
 			var verifyData = {
 				verified: true,
 				schoolName: schoolName,
-				studentId: '',
+				studentId: studentId,
 				verifyDate: dateStr
 			}
 
@@ -113,14 +151,14 @@ export default {
 					url: 'http://192.168.31.98:3000/api/auth/verify',
 					method: 'POST',
 					header: { 'Authorization': 'Bearer ' + token },
-					data: { schoolName: schoolName, studentId: '' },
+					data: { schoolName: schoolName, studentId: studentId },
 					success: function() {},
 					fail: function() {}
 				})
 			}
 
 			this.resultSuccess = true
-			this.resultMsg = schoolName + ' 认证已通过'
+			this.resultMsg = schoolName + '（' + studentId + '）认证已通过'
 			this.showResult = true
 		},
 		onWebMessage(event) {

@@ -241,21 +241,21 @@ const schoolLocationsDB = {
 	},
 
 	'杭州万向职业技术学院': {
-		center: { lat: 30.2950, lng: 120.0580 },
+		center: { lat: 30.2534, lng: 120.0742 },
 		locations: [
-			{ id: 1, name: '1号教学楼', latitude: 30.2955, longitude: 120.0590, type: 'teach', typeName: '教学楼', openTime: '7:30 - 21:30', desc: '机电工程系、汽车技术系' },
-			{ id: 2, name: '2号教学楼', latitude: 30.2948, longitude: 120.0575, type: 'teach', typeName: '教学楼', openTime: '7:30 - 21:30', desc: '经济管理系、护理康复系' },
-			{ id: 3, name: '3号实训楼', latitude: 30.2942, longitude: 120.0595, type: 'teach', typeName: '教学楼', openTime: '8:00 - 21:00', desc: '实训教学中心' },
-			{ id: 4, name: '图书馆', latitude: 30.2950, longitude: 120.0580, type: 'library', typeName: '图书馆', openTime: '8:00 - 21:30', desc: '纸质藏书30万册，电子阅览室' },
-			{ id: 5, name: '第一食堂', latitude: 30.2935, longitude: 120.0570, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '大众餐、特色窗口' },
-			{ id: 6, name: '第二食堂', latitude: 30.2960, longitude: 120.0565, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '风味小吃、清真窗口' },
-			{ id: 7, name: '学生公寓A区', latitude: 30.2965, longitude: 120.0560, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '男生宿舍区' },
-			{ id: 8, name: '学生公寓B区', latitude: 30.2968, longitude: 120.0575, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '女生宿舍区' },
-			{ id: 9, name: '田径运动场', latitude: 30.2930, longitude: 120.0590, type: 'playground', typeName: '运动场地', openTime: '6:00 - 22:00', desc: '400米标准跑道、足球场' },
-			{ id: 10, name: '体育馆', latitude: 30.2925, longitude: 120.0580, type: 'gym', typeName: '体育馆', openTime: '7:00 - 22:00', desc: '篮球场、羽毛球场、乒乓球室' },
-			{ id: 11, name: '实训中心', latitude: 30.2945, longitude: 120.0600, type: 'lab', typeName: '实验楼', openTime: '8:00 - 21:00', desc: '汽车维修、数控加工、护理实训' },
-			{ id: 12, name: '行政楼', latitude: 30.2952, longitude: 120.0570, type: 'admin', typeName: '行政楼', openTime: '8:30 - 17:00', desc: '校办、教务处、学生处' },
-			{ id: 13, name: '学生活动中心', latitude: 30.2938, longitude: 120.0585, type: 'activity', typeName: '活动中心', openTime: '8:00 - 22:00', desc: '社团活动、多功能报告厅' }
+			{ id: 1, name: '1号教学楼', latitude: 30.2539, longitude: 120.0752, type: 'teach', typeName: '教学楼', openTime: '7:30 - 21:30', desc: '机电工程系、汽车技术系' },
+			{ id: 2, name: '2号教学楼', latitude: 30.2532, longitude: 120.0737, type: 'teach', typeName: '教学楼', openTime: '7:30 - 21:30', desc: '经济管理系、护理康复系' },
+			{ id: 3, name: '3号实训楼', latitude: 30.2526, longitude: 120.0757, type: 'teach', typeName: '教学楼', openTime: '8:00 - 21:00', desc: '实训教学中心' },
+			{ id: 4, name: '图书馆', latitude: 30.2534, longitude: 120.0742, type: 'library', typeName: '图书馆', openTime: '8:00 - 21:30', desc: '纸质藏书30万册，电子阅览室' },
+			{ id: 5, name: '第一食堂', latitude: 30.2519, longitude: 120.0732, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '大众餐、特色窗口' },
+			{ id: 6, name: '第二食堂', latitude: 30.2544, longitude: 120.0727, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '风味小吃、清真窗口' },
+			{ id: 7, name: '学生公寓A区', latitude: 30.2549, longitude: 120.0722, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '男生宿舍区' },
+			{ id: 8, name: '学生公寓B区', latitude: 30.2552, longitude: 120.0737, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '女生宿舍区' },
+			{ id: 9, name: '田径运动场', latitude: 30.2514, longitude: 120.0752, type: 'playground', typeName: '运动场地', openTime: '6:00 - 22:00', desc: '400米标准跑道、足球场' },
+			{ id: 10, name: '体育馆', latitude: 30.2509, longitude: 120.0742, type: 'gym', typeName: '体育馆', openTime: '7:00 - 22:00', desc: '篮球场、羽毛球场、乒乓球室' },
+			{ id: 11, name: '实训中心', latitude: 30.2529, longitude: 120.0762, type: 'lab', typeName: '实验楼', openTime: '8:00 - 21:00', desc: '汽车维修、数控加工、护理实训' },
+			{ id: 12, name: '行政楼', latitude: 30.2536, longitude: 120.0732, type: 'admin', typeName: '行政楼', openTime: '8:30 - 17:00', desc: '校办、教务处、学生处' },
+			{ id: 13, name: '学生活动中心', latitude: 30.2522, longitude: 120.0747, type: 'activity', typeName: '活动中心', openTime: '8:00 - 22:00', desc: '社团活动、多功能报告厅' }
 		],
 		locationTypes: [
 			{ name: '教学楼', type: 'teach' },
