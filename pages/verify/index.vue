@@ -50,6 +50,33 @@ export default {
 			this.chsiUrl = 'https://account.chsi.com.cn/passport/login'
 		}
 	},
+	mounted() {
+		// 检查是否已有认证数据
+		var existing = uni.getStorageSync('campus_school_verify')
+		if (existing) {
+			try {
+				var v = JSON.parse(existing)
+				if (v.verified) return // 已认证，跳过
+			} catch(e) {}
+		}
+		// 没有认证数据，直接弹窗确认
+		var _this = this
+		setTimeout(function() {
+			uni.showModal({
+				title: '学信网认证',
+				content: '请确认您已在学信网完成登录认证',
+				confirmText: '已完成',
+				cancelText: '还没有',
+				success: function(res) {
+					if (res.confirm) {
+						_this.onConfirmLogin()
+					} else {
+						uni.navigateBack()
+					}
+				}
+			})
+		}, 1500)
+	},
 	methods: {
 		onWebMessage(event) {
 			// 接收 web-view 传回的消息
@@ -110,6 +137,9 @@ export default {
 			try {
 				uni.setStorageSync('campus_school_verify', JSON.stringify(verifyData))
 				console.log('[Verify] localStorage saved:', JSON.stringify(verifyData))
+				// 验证是否真的存进去了
+				var check = uni.getStorageSync('campus_school_verify')
+				console.log('[Verify] verify readback:', check)
 			} catch (e) {
 				console.error('[Verify] localStorage save FAILED:', e)
 				uni.showToast({ title: '本地存储失败: ' + e.message, icon: 'none', duration: 3000 })
