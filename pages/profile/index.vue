@@ -436,16 +436,22 @@ loadProfile() {
 		loadVerifyData() {
 			try {
 				var data = uni.getStorageSync('campus_school_verify')
+				console.log('[Profile] loadVerifyData raw:', data)
 				if (data) {
 					var v = JSON.parse(data)
+					console.log('[Profile] loadVerifyData parsed:', JSON.stringify(v))
 					if (v.verified) {
 						this.verified = true
 						this.schoolName = v.schoolName || ''
 						this.studentId = v.studentId || ''
 						this.verifyDate = v.verifyDate || ''
 					}
+				} else {
+					console.log('[Profile] loadVerifyData: no data found')
 				}
-			} catch (e) {}
+			} catch (e) {
+				console.error('[Profile] loadVerifyData error:', e)
+			}
 		},
 		fetchVerifyFromApi() {
 			var _this = this

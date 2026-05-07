@@ -81,9 +81,12 @@ export default {
 		closeResult() {
 			this.showResult = false
 			if (this.resultSuccess) {
-				// 认证成功，用 switchTab 确保 tab 页刷新
-				uni.switchTab({
-					url: '/pages/profile/index'
+				// 认证成功，返回个人页面
+				uni.navigateBack({
+					fail: function() {
+						// navigateBack 失败时用 reLaunch
+						uni.reLaunch({ url: '/pages/profile/index' })
+					}
 				})
 			} else {
 				uni.navigateBack()
@@ -106,7 +109,11 @@ export default {
 			// 保存到本地
 			try {
 				uni.setStorageSync('campus_school_verify', JSON.stringify(verifyData))
-			} catch (e) {}
+				console.log('[Verify] localStorage saved:', JSON.stringify(verifyData))
+			} catch (e) {
+				console.error('[Verify] localStorage save FAILED:', e)
+				uni.showToast({ title: '本地存储失败: ' + e.message, icon: 'none', duration: 3000 })
+			}
 
 			// 保存到服务器
 			var token = uni.getStorageSync('campus_token')
@@ -116,8 +123,8 @@ export default {
 					method: 'POST',
 					header: { 'Authorization': 'Bearer ' + token },
 					data: { schoolName: '已通过学信网认证', studentId: '' },
-					success: function() {},
-					fail: function() {}
+					success: function() { console.log('[Verify] server saved') },
+					fail: function(e) { console.log('[Verify] server save failed:', e) }
 				})
 			}
 
