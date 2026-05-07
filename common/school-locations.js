@@ -248,7 +248,7 @@ const schoolLocationsDB = {
 			{ id: 2, name: '图书馆-南区', latitude: 30.2583, longitude: 120.0765, type: 'library', typeName: '图书馆', openTime: '8:00 - 21:30', desc: '主图书馆，藏书30万册' },
 			{ id: 3, name: '图书馆-北区', latitude: 30.2577, longitude: 120.0762, type: 'library', typeName: '图书馆', openTime: '8:00 - 21:30', desc: '电子阅览室、自习区' },
 			{ id: 3, name: '老食堂（蜜雪冰城）', latitude: 30.2546, longitude: 120.0743, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '1号校区老食堂' },
-			{ id: 4, name: '新食堂', latitude: 30.2552, longitude: 120.0743, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '1号校区新食堂，路对面' },
+			{ id: 4, name: '新食堂', latitude: 30.2552, longitude: 120.0748, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '1号校区新食堂，老食堂东北方向' },
 			{ id: 5, name: '丁哥石锅饭', latitude: 30.2545, longitude: 120.0742, type: 'food', typeName: '食堂', openTime: '6:30 - 20:30', desc: '校内特色餐饮' },
 			{ id: 4, name: '学生公寓楼', latitude: 30.2542, longitude: 120.0750, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '1号校区学生公寓' },
 			{ id: 5, name: '学生公寓6幢', latitude: 30.2538, longitude: 120.0730, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '1号校区公寓6幢' },
