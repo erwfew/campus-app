@@ -123,7 +123,6 @@ export default {
 			this.resultMsg = schoolName + ' 认证已通过'
 			this.showResult = true
 		},
-	methods: {
 		onWebMessage(event) {
 			// 接收 web-view 传回的消息
 			try {
