@@ -215,7 +215,18 @@ export default {
   components: { BottomNav },
 	data() {
 		return {
-			// 地图中心（校园中心坐标 - 杭州某高校）
+			// 新类型→已有marker图片的映射
+			markerIconMap: {
+				teaching: 'teach',
+				canteen: 'food',
+				dormitory: 'dorm',
+				sports: 'gym',
+				office: 'admin',
+				'teacher-apt': 'dorm',
+				shop: 'food',
+				hotel: 'activity',
+				'school-gate': 'activity',
+			},
 			centerLat: 30.2570,
 			centerLng: 120.1290,
 			mapScale: 16,
@@ -231,30 +242,30 @@ export default {
 
 			// 校园建筑数据（模拟坐标）
 			campusLocations: [
-				{ id: 1, name: '教学楼A', latitude: 30.2580, longitude: 120.1280, type: 'teach', typeName: '教学楼', openTime: '7:00 - 22:00', desc: '计算机学院、数学学院所在地' },
-				{ id: 2, name: '教学楼B', latitude: 30.2590, longitude: 120.1300, type: 'teach', typeName: '教学楼', openTime: '7:00 - 22:00', desc: '外语学院、经管学院所在地' },
-				{ id: 3, name: '教学楼C', latitude: 30.2565, longitude: 120.1310, type: 'teach', typeName: '教学楼', openTime: '7:00 - 22:00', desc: '文学院、法学院所在地' },
+				{ id: 1, name: '教学楼A', latitude: 30.2580, longitude: 120.1280, type: 'teaching', typeName: '教学楼', openTime: '7:00 - 22:00', desc: '计算机学院、数学学院所在地' },
+				{ id: 2, name: '教学楼B', latitude: 30.2590, longitude: 120.1300, type: 'teaching', typeName: '教学楼', openTime: '7:00 - 22:00', desc: '外语学院、经管学院所在地' },
+				{ id: 3, name: '教学楼C', latitude: 30.2565, longitude: 120.1310, type: 'teaching', typeName: '教学楼', openTime: '7:00 - 22:00', desc: '文学院、法学院所在地' },
 				{ id: 4, name: '图书馆', latitude: 30.2570, longitude: 120.1290, type: 'library', typeName: '图书馆', openTime: '8:00 - 22:00', desc: '藏书120万册，自习室24小时开放' },
-				{ id: 5, name: '第一食堂', latitude: 30.2560, longitude: 120.1270, type: 'food', typeName: '食堂', openTime: '6:30 - 21:00', desc: '一楼大众餐，二楼特色小吃' },
-				{ id: 6, name: '第二食堂', latitude: 30.2585, longitude: 120.1265, type: 'food', typeName: '食堂', openTime: '6:30 - 21:00', desc: '清真窗口、西式快餐' },
-				{ id: 7, name: '宿舍A栋', latitude: 30.2600, longitude: 120.1260, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '男生宿舍' },
-				{ id: 8, name: '宿舍B栋', latitude: 30.2605, longitude: 120.1275, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '女生宿舍' },
-				{ id: 9, name: '宿舍C栋', latitude: 30.2602, longitude: 120.1250, type: 'dorm', typeName: '宿舍', openTime: '全天', desc: '研究生宿舍' },
+				{ id: 5, name: '第一食堂', latitude: 30.2560, longitude: 120.1270, type: 'canteen', typeName: '食堂', openTime: '6:30 - 21:00', desc: '一楼大众餐，二楼特色小吃' },
+				{ id: 6, name: '第二食堂', latitude: 30.2585, longitude: 120.1265, type: 'canteen', typeName: '食堂', openTime: '6:30 - 21:00', desc: '清真窗口、西式快餐' },
+				{ id: 7, name: '宿舍A栋', latitude: 30.2600, longitude: 120.1260, type: 'dormitory', typeName: '宿舍', openTime: '全天', desc: '男生宿舍' },
+				{ id: 8, name: '宿舍B栋', latitude: 30.2605, longitude: 120.1275, type: 'dormitory', typeName: '宿舍', openTime: '全天', desc: '女生宿舍' },
+				{ id: 9, name: '宿舍C栋', latitude: 30.2602, longitude: 120.1250, type: 'dormitory', typeName: '宿舍', openTime: '全天', desc: '研究生宿舍' },
 				{ id: 10, name: '操场', latitude: 30.2550, longitude: 120.1310, type: 'playground', typeName: '运动场地', openTime: '6:00 - 22:00', desc: '400米标准跑道，足球场' },
-				{ id: 11, name: '体育馆', latitude: 30.2540, longitude: 120.1300, type: 'gym', typeName: '体育馆', openTime: '7:00 - 22:00', desc: '篮球场、羽毛球场、游泳馆' },
+				{ id: 11, name: '体育馆', latitude: 30.2540, longitude: 120.1300, type: 'sports', typeName: '体育馆', openTime: '7:00 - 22:00', desc: '篮球场、羽毛球场、游泳馆' },
 				{ id: 12, name: '实验楼', latitude: 30.2555, longitude: 120.1295, type: 'lab', typeName: '实验楼', openTime: '8:00 - 21:00', desc: '物理、化学、生物实验室' },
-				{ id: 13, name: '行政楼', latitude: 30.2575, longitude: 120.1270, type: 'admin', typeName: '行政楼', openTime: '8:30 - 17:30', desc: '教务处、学生处、财务处' },
+				{ id: 13, name: '行政楼', latitude: 30.2575, longitude: 120.1270, type: 'office', typeName: '行政楼', openTime: '8:30 - 17:30', desc: '教务处、学生处、财务处' },
 				{ id: 14, name: '大学生活动中心', latitude: 30.2558, longitude: 120.1285, type: 'activity', typeName: '活动中心', openTime: '8:00 - 22:00', desc: '社团活动、文艺演出' }
 			],
 
 			// 快速定位分类
 			locationTypes: [
-				{ name: '教学楼', type: 'teach' },
+				{ name: '教学楼', type: 'teaching' },
 				{ name: '图书馆', type: 'library' },
-				{ name: '食堂', type: 'food' },
-				{ name: '宿舍', type: 'dorm' },
+				{ name: '食堂', type: 'canteen' },
+				{ name: '宿舍', type: 'dormitory' },
 				{ name: '操场', type: 'playground' },
-				{ name: '体育馆', type: 'gym' }
+				{ name: '体育馆', type: 'sports' }
 			],
 
 			// 路线规划
@@ -319,7 +330,7 @@ export default {
 					latitude: place.latitude,
 					longitude: place.longitude,
 					title: place.name,
-					iconPath: '/static/marker-' + place.type + '.png',
+					iconPath: '/static/marker-' + (this.markerIconMap[place.type] || place.type) + '.png',
 					width: 30,
 					height: 30,
 					callout: {
