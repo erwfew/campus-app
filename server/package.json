@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "效园通后端服务",
   "main": "app.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node app.js",
     "dev": "node app.js"

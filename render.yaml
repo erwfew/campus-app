@@ -6,6 +6,8 @@ services:
     buildCommand: cd server && npm install
     startCommand: cd server && node app.js
     envVars:
+      - key: NODE_VERSION
+        value: 22
       - key: NODE_ENV
         value: production
       - key: JWT_SECRET
