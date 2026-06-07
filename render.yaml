@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: campus-app
+    runtime: node
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && node app.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 3000
+      - key: CORS_ORIGIN
+        sync: false
+    healthCheckPath: /api/health
+    autoDeploy: true

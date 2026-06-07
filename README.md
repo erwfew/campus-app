@@ -10,8 +10,9 @@
 |------|------|
 | 前端 | uni-app (Vue 3) + HBuilderX |
 | 桌面端 | Electron 28 |
-| 后端 | Express (Node.js) + Puppeteer |
+| 后端 | Express (Node.js) + better-sqlite3 + WebSocket |
 | 地图 | 高德地图 API |
+| 部署 | Render / GitHub Actions CI/CD |
 
 ## 项目结构
 
@@ -75,6 +76,24 @@ npm start
 - 👤 个人中心
 - ✅ 学信网认证
 - 📢 校园公告
+
+## 部署（Render）
+
+1. Fork 本仓库到你的 GitHub
+2. 在 [render.com](https://render.com) 注册并连接 GitHub
+3. New → Blueprint → 选择本仓库，自动识别 render.yaml
+4. 设置环境变量：
+   - `JWT_SECRET` — 随机字符串（自动生成）
+   - `CORS_ORIGIN` — 你的前端域名（如 https://your-app.onrender.com）
+5. 部署完成
+
+### GitHub Actions 自动部署
+
+在 GitHub 仓库 Settings → Secrets 中添加：
+- `RENDER_SERVICE_ID` — Render 服务 ID
+- `RENDER_API_KEY` — Render API Key（Settings → API Keys）
+
+推送到 main 分支即自动部署。
 
 ## 许可证
 

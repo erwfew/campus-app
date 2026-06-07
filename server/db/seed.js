@@ -18,7 +18,7 @@ async function seed() {
   }
 
   // 创建管理员
-  const adminPwd = hashPassword('admin123');
+  const adminPwd = hashPassword('88888888');
   run('INSERT INTO users (username, password_hash, salt, real_name, role, college) VALUES (?, ?, ?, ?, ?, ?)',
     ['admin', adminPwd.hash, adminPwd.salt, '系统管理员', 'admin', '教务处']);
 
@@ -30,7 +30,7 @@ async function seed() {
     { username: 'teacher4', name: '陈老师', college: '外国语学院' },
   ];
 
-  const teacherPwd = hashPassword('teacher123');
+  const teacherPwd = hashPassword('88888888');
   const teacherIds = [];
   for (const t of teachers) {
     const result = run('INSERT INTO users (username, password_hash, salt, real_name, role, college) VALUES (?, ?, ?, ?, ?, ?)',
@@ -43,7 +43,7 @@ async function seed() {
   const names = ['伟','芳','娜','秀英','敏','静','丽','强','磊','军','洋','勇','艳','杰','娟','涛','明','超','秀兰','霞'];
   const colleges = ['信息工程学院','机电工程学院','经济管理学院','外国语学院','艺术设计学院','建筑工程学院'];
   
-  const studentPwd = hashPassword('student123');
+  const studentPwd = hashPassword('88888888');
   const studentIds = [];
   
   for (let i = 0; i < 100; i++) {
@@ -139,9 +139,9 @@ async function seed() {
 
   console.log('[Seed] 种子数据填充完成！');
   console.log('[Seed] ━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('[Seed] 管理员: admin / admin123');
-  console.log('[Seed] 教师: teacher1~4 / teacher123');
-  console.log('[Seed] 学生: stu20230001~stu20230100 / student123');
+  console.log('[Seed] 管理员: admin / 88888888');
+  console.log('[Seed] 教师: teacher1~4 / 88888888');
+  console.log('[Seed] 学生: stu20230001~stu20230100 / 88888888');
   console.log('[Seed] ━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 }
 

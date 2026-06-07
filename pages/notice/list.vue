@@ -30,6 +30,8 @@
 </template>
 
 <script>
+import { useNoticeStore } from '@/store/pinia'
+
 export default {
 	data() {
 		return {
@@ -41,21 +43,12 @@ export default {
 	},
 	methods: {
 		loadNotices() {
-			// TODO: 后端接入后替换为 uni.request
-			// uni.request({
-			//   url: '/api/notices',
-			//   success: (res) => {
-			//     this.noticeList = res.data
-			//     uni.setStorageSync('campus_notices', JSON.stringify(res.data))
-			//   }
-			// })
-			try {
-				var cached = uni.getStorageSync('campus_notices')
-				if (cached) {
-					this.noticeList = JSON.parse(cached)
-					return
-				}
-			} catch (e) {}
+			const noticeStore = useNoticeStore()
+			noticeStore.loadFromStorage()
+			if (noticeStore.list.length > 0) {
+				this.noticeList = noticeStore.list
+				return
+			}
 			this.noticeList = [
 				{ id: 1, tag: '热门', tagType: 'hot', title: '图书馆本周六举办读书分享会', content: '图书馆将于本周六下午2点在三楼报告厅举办读书分享会，欢迎同学们踊跃参加。本次活动主题为"经典重读"，届时将有学长学姐分享读书心得。', date: '2026-03-28', author: '图书馆' },
 				{ id: 2, tag: '新', tagType: 'new', title: '下周一全校停课一天通知', content: '接上级通知，因校园设施维护需要，下周一（3月30日）全校停课一天，请各学院做好教学调整安排。', date: '2026-03-27', author: '教务处' },

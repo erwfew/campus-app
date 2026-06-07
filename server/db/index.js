@@ -1,52 +1,43 @@
 /**
  * 数据库初始化模块
- * 使用 sql.js（纯 JavaScript SQLite，无需原生编译）
+ * 使用 better-sqlite3（持久化 SQLite，性能优于 sql.js）
  * 
- * 注意：sql.js 是内存数据库，每次启动从文件加载，写入后保存到文件
+ * 特点：
+ * - 同步 API，无需 async/await
+ * - WAL 模式，支持并发读写
+ * - 自动持久化，无需手动 save/load
  */
-const initSqlJs = require('sql.js');
-const fs = require('fs');
+const Database = require('better-sqlite3');
 const path = require('path');
 const crypto = require('crypto');
 
 const DB_PATH = path.join(__dirname, '..', 'data', 'campus.db');
 
 let db = null;
-let SQL = null;
 
-async function getDb() {
-  if (!db) {
-    await initDb();
-  }
-  return db;
-}
-
-async function initDb() {
+/**
+ * 初始化数据库
+ */
+function initDb() {
   if (db) return db;
 
-  SQL = await initSqlJs();
-
-  // 确保 data 目录存在
+  const fs = require('fs');
   const dataDir = path.dirname(DB_PATH);
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
 
-  // 如果数据库文件存在，加载它；否则创建新的
-  if (fs.existsSync(DB_PATH)) {
-    const buffer = fs.readFileSync(DB_PATH);
-    db = new SQL.Database(buffer);
-    console.log('[DB] 数据库已加载');
-  } else {
-    db = new SQL.Database();
-    console.log('[DB] 新数据库已创建');
-  }
+  db = new Database(DB_PATH);
 
-  // 启用外键
-  db.run('PRAGMA foreign_keys = ON');
+  // WAL 模式：提升并发读写性能
+  db.pragma('journal_mode = WAL');
+  // 启用外键约束
+  db.pragma('foreign_keys = ON');
+
+  console.log('[DB] 数据库已连接');
 
   // 建表
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
@@ -67,16 +58,16 @@ async function initDb() {
     )
   `);
 
-  // 迁移：给旧表加 verified 相关字段（如果缺失）
+  // 迁移：给旧表补 verified 相关字段（如果缺失）
   try {
-    const cols = db.exec("PRAGMA table_info(users)");
-    const colNames = cols.length > 0 ? cols[0].values.map(r => r[1]) : [];
-    if (!colNames.includes('verified')) db.run('ALTER TABLE users ADD COLUMN verified INTEGER DEFAULT 0');
-    if (!colNames.includes('school_name')) db.run('ALTER TABLE users ADD COLUMN school_name TEXT DEFAULT \"\"');
-    if (!colNames.includes('verify_date')) db.run('ALTER TABLE users ADD COLUMN verify_date TEXT DEFAULT \"\"');
+    const cols = db.pragma('table_info(users)');
+    const colNames = cols.map(r => r.name);
+    if (!colNames.includes('verified')) db.exec('ALTER TABLE users ADD COLUMN verified INTEGER DEFAULT 0');
+    if (!colNames.includes('school_name')) db.exec('ALTER TABLE users ADD COLUMN school_name TEXT DEFAULT ""');
+    if (!colNames.includes('verify_date')) db.exec('ALTER TABLE users ADD COLUMN verify_date TEXT DEFAULT ""');
   } catch (e) { /* 新库不需要迁移 */ }
 
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS courses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -100,7 +91,7 @@ async function initDb() {
     )
   `);
 
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS enrollments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       course_id INTEGER NOT NULL,
@@ -112,7 +103,7 @@ async function initDb() {
     )
   `);
 
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS attendance (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       course_id INTEGER NOT NULL,
@@ -127,7 +118,7 @@ async function initDb() {
     )
   `);
 
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS homework (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       course_id INTEGER NOT NULL,
@@ -142,7 +133,7 @@ async function initDb() {
     )
   `);
 
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS submissions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       homework_id INTEGER NOT NULL,
@@ -159,7 +150,7 @@ async function initDb() {
     )
   `);
 
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS grades (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       course_id INTEGER NOT NULL,
@@ -175,7 +166,7 @@ async function initDb() {
     )
   `);
 
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS notices (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
@@ -191,67 +182,27 @@ async function initDb() {
   `);
 
   // 索引
-  db.run('CREATE INDEX IF NOT EXISTS idx_courses_teacher ON courses(teacher_id)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_enrollments_course ON enrollments(course_id)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_enrollments_student ON enrollments(student_id)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_attendance_course_date ON attendance(course_id, date)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_homework_course ON homework(course_id)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_submissions_homework ON submissions(homework_id)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_grades_course ON grades(course_id)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_notices_scope ON notices(scope)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_courses_teacher ON courses(teacher_id)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_enrollments_course ON enrollments(course_id)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_enrollments_student ON enrollments(student_id)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_attendance_course_date ON attendance(course_id, date)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_homework_course ON homework(course_id)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_submissions_homework ON submissions(homework_id)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_grades_course ON grades(course_id)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_notices_scope ON notices(scope)');
 
   console.log('[DB] 数据库初始化完成');
   return db;
 }
 
 /**
- * 保存数据库到文件
+ * 关闭数据库连接
  */
-function saveDb() {
-  if (!db) return;
-  const data = db.export();
-  const buffer = Buffer.from(data);
-  fs.writeFileSync(DB_PATH, buffer);
-}
-
-/**
- * 防抖保存 — 短时间内多次写入只触发一次磁盘写入
- * 通过 requestSave() 代替直接调用 saveDb()
- */
-let saveTimer = null;
-let savePending = false;
-
-function requestSave(debounceMs) {
-  if (saveTimer) {
-    clearTimeout(saveTimer);
-  }
-  savePending = true;
-  saveTimer = setTimeout(() => {
-    if (savePending) {
-      try {
-        saveDb();
-        savePending = false;
-      } catch (e) {
-        console.error('[DB] 防抖保存失败:', e.message);
-      }
-    }
-    saveTimer = null;
-  }, debounceMs || 2000);
-}
-
-/** 进程退出前强制保存 */
-function flushSave() {
-  if (saveTimer) {
-    clearTimeout(saveTimer);
-    saveTimer = null;
-  }
-  if (savePending) {
-    try {
-      saveDb();
-      savePending = false;
-    } catch (e) {
-      console.error('[DB] flush 保存失败:', e.message);
-    }
+function closeDb() {
+  if (db) {
+    db.close();
+    db = null;
+    console.log('[DB] 数据库已关闭');
   }
 }
 
@@ -259,29 +210,21 @@ function flushSave() {
  * 执行查询并返回结果数组
  */
 function all(sql, params = []) {
-  const stmt = db.prepare(sql);
-  stmt.bind(params);
-  const results = [];
-  while (stmt.step()) {
-    results.push(stmt.getAsObject());
-  }
-  stmt.free();
-  return results;
+  return db.prepare(sql).all(...params);
 }
 
 /**
  * 执行查询返回单行
  */
 function get(sql, params = []) {
-  const results = all(sql, params);
-  return results[0] || null;
+  return db.prepare(sql).get(...params) || null;
 }
 
 /**
  * 执行查询返回行数
  */
 function count(sql, params = []) {
-  const result = get(sql, params);
+  const result = db.prepare(sql).get(...params);
   return result ? Object.values(result)[0] : 0;
 }
 
@@ -289,12 +232,16 @@ function count(sql, params = []) {
  * 执行 INSERT/UPDATE/DELETE
  */
 function run(sql, params = []) {
-  db.run(sql, params);
-  // 返回 lastInsertRowid 和 changes
-  const info = db.exec('SELECT last_insert_rowid() as id, changes() as changes');
-  const id = info.length > 0 && info[0].values.length > 0 ? info[0].values[0][0] : 0;
-  const changes_ = info.length > 0 && info[0].values.length > 0 ? info[0].values[0][1] : 0;
-  return { lastInsertRowid: id, changes: changes_ };
+  const stmt = db.prepare(sql);
+  const info = stmt.run(...params);
+  return { lastInsertRowid: info.lastInsertRowid, changes: info.changes };
+}
+
+/**
+ * 事务包装器
+ */
+function transaction(fn) {
+  return db.transaction(fn)();
 }
 
 /**
@@ -311,4 +258,4 @@ function verifyPassword(password, hash, salt) {
   return computed === hash;
 }
 
-module.exports = { getDb, initDb, saveDb, requestSave, flushSave, all, get, count, run, hashPassword, verifyPassword };
+module.exports = { initDb, closeDb, all, get, count, run, transaction, hashPassword, verifyPassword };

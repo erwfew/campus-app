@@ -148,6 +148,7 @@
 
 <script>
 import { importApi } from '@/utils/request.js'
+import { useCourseStore } from '@/store/pinia'
 
 export default {
 	data() {
@@ -2721,20 +2722,16 @@ export default {
 				return
 			}
 
-			// 获取已有课程
-			var courses = []
-			try {
-				var data = uni.getStorageSync('campus_courses')
-				if (data) courses = JSON.parse(data)
-			} catch (e) {}
+			const courseStore = useCourseStore()
+			courseStore.loadFromStorage()
 
 			// 添加导入的课程
 			selectedCourses.forEach(course => {
 				var { selected, ...courseData } = course
-				courses.push(courseData)
+				courseStore.allCourses.push(courseData)
 			})
 
-			uni.setStorageSync('campus_courses', JSON.stringify(courses))
+			courseStore.saveToStorage()
 
 			uni.showToast({
 				title: '成功导入 ' + selectedCourses.length + ' 门课程',

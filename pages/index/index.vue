@@ -116,57 +116,44 @@
 
 <script>
 import BottomNav from '../../components/bottom-nav/bottom-nav.vue'
+import { useMascotStore, useCourseStore, useNoticeStore } from '../../store/pinia'
 
 export default {
 	components: { BottomNav },
+	setup() {
+		const mascotStore = useMascotStore()
+		const courseStore = useCourseStore()
+		const noticeStore = useNoticeStore()
+		return { mascotStore, courseStore, noticeStore }
+	},
 	data() {
 		return {
-			mascotEmoji: '\u{1F431}',
-			mascotName: '小喵',
-			mascotLevel: 5,
 			greeting: '今天有3节课，别忘了带课本哦',
 			showBubble: false,
 			bubbleText: '',
 			mascotAnimating: false,
 			bubbleTimer: null,
-			todayCourses: [],
-			todayIndex: 0,
-			noticeList: []
+			todayIndex: 0
 		}
 	},
+	computed: {
+		mascotEmoji() { return this.mascotStore.emoji },
+		mascotName() { return this.mascotStore.name },
+		mascotLevel() { return this.mascotStore.level },
+		todayCourses() { return this.courseStore.todayCourses },
+		noticeList() { return this.noticeStore.list }
+	},
 	onShow() {
-		this.loadMascotData()
+		this.mascotStore.loadFromStorage()
+		this.courseStore.loadFromStorage()
+		this.noticeStore.loadFromStorage()
 		this.updateGreeting()
 		this.loadTodayCourses()
 		this.loadNotices()
 	},
 	methods: {
-		loadMascotData() {
-			try {
-				const data = uni.getStorageSync('campus_mascot')
-				if (data) {
-					const m = JSON.parse(data)
-					if (m.emoji) this.mascotEmoji = m.emoji
-					if (m.name) this.mascotName = m.name
-					if (m.level) this.mascotLevel = m.level
-				}
-			} catch (e) {}
-		},
 		loadTodayCourses() {
-			this.todayIndex = (new Date().getDay() + 6) % 7 // 周日=0转为6
-			try {
-				const data = uni.getStorageSync('campus_courses')
-				if (data) {
-					const courses = JSON.parse(data)
-					this.todayCourses = courses
-						.filter(c => c.weekDay === this.todayIndex)
-						.sort((a, b) => a.startSection - b.startSection)
-				} else {
-					this.todayCourses = []
-				}
-			} catch (e) {
-				this.todayCourses = []
-			}
+			this.todayIndex = (new Date().getDay() + 6) % 7
 		},
 		_parseTime(timeStr) {
 			if (!timeStr) return null
@@ -251,19 +238,14 @@ export default {
 		goCreative() { uni.navigateTo({ url: '/pages/creative/index' }) },
 		goImport() { uni.navigateTo({ url: '/pages/course/import' }) },
 		loadNotices() {
-			try {
-				const cached = uni.getStorageSync('campus_notices')
-				if (cached) {
-					this.noticeList = JSON.parse(cached)
-					return
-				}
-			} catch (e) {}
-			// 本地默认数据
-			this.noticeList = [
-				{ id: 1, tag: '热门', tagType: 'hot', title: '图书馆本周六举办读书分享会', content: '图书馆将于本周六下午2点在三楼报告厅举办读书分享会，欢迎同学们踊跃参加。本次活动主题为"经典重读"，届时将有学长学姐分享读书心得。', date: '2026-03-28', author: '图书馆' },
-				{ id: 2, tag: '新', tagType: 'new', title: '下周一全校停课一天通知', content: '接上级通知，因校园设施维护需要，下周一（3月30日）全校停课一天，请各学院做好教学调整安排。', date: '2026-03-27', author: '教务处' },
-				{ id: 3, tag: '通知', tagType: 'info', title: '食堂新增窗口投票开始啦', content: '为了丰富同学们的用餐选择，食堂计划新增两个窗口，现面向全校同学征集意见。投票截止日期为4月5日，快来为你喜欢的美食投票吧！', date: '2026-03-26', author: '后勤处' }
-			]
+			this.noticeStore.loadFromStorage()
+			if (this.noticeStore.list.length === 0) {
+				this.noticeStore.setNotices([
+					{ id: 1, tag: '热门', tagType: 'hot', title: '图书馆本周六举办读书分享会', content: '图书馆将于本周六下午2点在三楼报告厅举办读书分享会，欢迎同学们踊跃参加。', date: '2026-03-28', author: '图书馆' },
+					{ id: 2, tag: '新', tagType: 'new', title: '下周一全校停课一天通知', content: '接上级通知，因校园设施维护需要，下周一（3月30日）全校停课一天。', date: '2026-03-27', author: '教务处' },
+					{ id: 3, tag: '通知', tagType: 'info', title: '食堂新增窗口投票开始啦', content: '食堂计划新增两个窗口，现面向全校同学征集意见。', date: '2026-03-26', author: '后勤处' }
+				])
+			}
 		},
 		goNoticeList() {
 			uni.navigateTo({ url: '/pages/notice/list' })

@@ -7,12 +7,9 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'campus-app-secret-change-in-production';
-const JWT_EXPIRES = process.env.JWT_EXPIRES || '7d';
-
-if (!process.env.JWT_SECRET) {
-  console.warn('[Auth] 警告: 使用默认 JWT 密钥，生产环境请设置 JWT_SECRET 环境变量');
-}
+// 从 config 获取密钥，不再硬编码默认值
+const JWT_SECRET = config.jwtSecret;
+const JWT_EXPIRES = config.jwtExpires;
 
 /**
  * 生成 JWT token

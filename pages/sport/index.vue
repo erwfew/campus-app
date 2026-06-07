@@ -141,6 +141,7 @@
 
 <script>
 import BottomNav from '../../components/bottom-nav/bottom-nav.vue'
+import { useSportStore } from '@/store/pinia'
 export default {
 components: { BottomNav },
 	data() {
@@ -499,18 +500,15 @@ components: { BottomNav },
 
 		// ==================== 数据持久化 ====================
 		saveHistory() {
-			uni.setStorageSync('campus_run_history', JSON.stringify(this.runHistory))
+			const sportStore = useSportStore()
+			sportStore.runHistory = this.runHistory
+			sportStore.saveToStorage()
 		},
 
 		loadHistory() {
-			try {
-				var data = uni.getStorageSync('campus_run_history')
-				if (data) {
-					this.runHistory = JSON.parse(data)
-				}
-			} catch (e) {
-				this.runHistory = []
-			}
+			const sportStore = useSportStore()
+			sportStore.loadFromStorage()
+			this.runHistory = sportStore.runHistory
 			this.updateOverview()
 		},
 

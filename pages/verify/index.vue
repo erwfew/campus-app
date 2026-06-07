@@ -33,6 +33,8 @@
 </template>
 
 <script>
+import { useUserStore } from '@/store/pinia'
+
 export default {
 	data() {
 		return {
@@ -52,13 +54,9 @@ export default {
 	},
 	mounted() {
 		// 检查是否已有认证数据
-		var existing = uni.getStorageSync('campus_school_verify')
-		if (existing) {
-			try {
-				var v = JSON.parse(existing)
-				if (v.verified && v.schoolName && v.schoolName !== '已通过学信网认证' && v.studentId) return // 已有完整认证
-			} catch(e) {}
-		}
+		const userStore = useUserStore()
+		userStore.initFromStorage()
+		if (userStore.verified && userStore.schoolName && userStore.schoolName !== '已通过学信网认证' && userStore.studentId) return // 已有完整认证
 		// 没有完整认证数据，弹窗让用户输入
 		var _this = this
 		setTimeout(function() {
@@ -129,23 +127,15 @@ export default {
 				String(now.getMonth() + 1).padStart(2, '0') + '-' +
 				String(now.getDate()).padStart(2, '0')
 
-			var verifyData = {
+			const userStore = useUserStore()
+			userStore.setVerified({
 				verified: true,
 				schoolName: schoolName,
 				studentId: studentId,
 				verifyDate: dateStr
-			}
+			})
 
-			try {
-				uni.setStorageSync('campus_school_verify', JSON.stringify(verifyData))
-				console.log('[Verify] saved:', JSON.stringify(verifyData))
-				var check = uni.getStorageSync('campus_school_verify')
-				console.log('[Verify] readback:', check)
-			} catch (e) {
-				console.error('[Verify] save FAILED:', e)
-			}
-
-			var token = uni.getStorageSync('campus_token')
+			var token = userStore.token
 			if (token) {
 				uni.request({
 					url: 'http://192.168.31.98:3000/api/auth/verify',
@@ -174,12 +164,13 @@ export default {
 						this.showResult = true
 
 						// 保存认证信息
-						uni.setStorageSync('campus_school_verify', JSON.stringify({
+						const userStore = useUserStore()
+						userStore.setVerified({
 							verified: true,
 							schoolName: msg.schoolName || '',
 							studentId: msg.studentId || '',
 							verifyDate: new Date().toISOString().slice(0, 10)
-						}))
+						})
 					} else if (msg.type === 'verify_fail') {
 						this.resultSuccess = false
 						this.resultMsg = msg.reason || '认证未通过，请检查信息后重试。'
@@ -209,27 +200,16 @@ export default {
 				String(now.getMonth() + 1).padStart(2, '0') + '-' +
 				String(now.getDate()).padStart(2, '0')
 
-			var verifyData = {
+			const userStore = useUserStore()
+			userStore.setVerified({
 				verified: true,
 				schoolName: '已通过学信网认证',
 				studentId: '',
 				verifyDate: dateStr
-			}
-
-			// 保存到本地
-			try {
-				uni.setStorageSync('campus_school_verify', JSON.stringify(verifyData))
-				console.log('[Verify] localStorage saved:', JSON.stringify(verifyData))
-				// 验证是否真的存进去了
-				var check = uni.getStorageSync('campus_school_verify')
-				console.log('[Verify] verify readback:', check)
-			} catch (e) {
-				console.error('[Verify] localStorage save FAILED:', e)
-				uni.showToast({ title: '本地存储失败: ' + e.message, icon: 'none', duration: 3000 })
-			}
+			})
 
 			// 保存到服务器
-			var token = uni.getStorageSync('campus_token')
+			var token = userStore.token
 			if (token) {
 				uni.request({
 					url: 'http://192.168.31.98:3000/api/auth/verify',

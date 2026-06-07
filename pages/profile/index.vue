@@ -1,4 +1,4 @@
-﻿<template>
+<template>
 	<view class="profile-page">
 		<!-- 用户信息卡片 -->
 		<view class="user-card" @tap="editProfile">
@@ -242,21 +242,20 @@
 
 <script>
 import BottomNav from '../../components/bottom-nav/bottom-nav.vue'
+import { useUserStore, useMascotStore, useSportStore, useSigninStore } from '../../store/pinia'
+
 export default {
 components: { BottomNav },
+	setup() {
+		const userStore = useUserStore()
+		const mascotStore = useMascotStore()
+		return { userStore, mascotStore }
+	},
 	data() {
 		return {
-			userName: '张同学',
-			userDept: '计算机科学与技术 2024级',
-			avatarEmoji: 'U',
 			totalKm: '0.0',
 			totalRuns: '0',
 			totalCalories: '0',
-			mascotEmoji: '\u{1F431}',
-			mascotName: '小喵',
-			mascotLevel: 5,
-			mascotExp: 680,
-			mascotMaxExp: 1000,
 			signed: false,
 			signDate: '',
 			showEdit: false,
@@ -266,10 +265,6 @@ components: { BottomNav },
 			showAboutPanel: false,
 			// 学校认证
 			showVerifyPanel: false,
-			verified: false,
-			schoolName: '',
-			studentId: '',
-			verifyDate: '',
 			verifyName: '',
 			verifySchool: '',
 			verifyStudentId: '',
@@ -278,94 +273,54 @@ components: { BottomNav },
 		}
 	},
 	computed: {
-		expPercent() {
-			return Math.round((this.mascotExp / this.mascotMaxExp) * 100)
-		}
+		userName() { return this.userStore.profile.name },
+		userDept() { return this.userStore.profile.dept },
+		avatarEmoji() { return this.userStore.avatarEmoji },
+		mascotEmoji() { return this.mascotStore.emoji },
+		mascotName() { return this.mascotStore.name },
+		mascotLevel() { return this.mascotStore.level },
+		mascotExp() { return this.mascotStore.exp },
+		mascotMaxExp() { return this.mascotStore.maxExp },
+		expPercent() { return this.mascotStore.expPercent },
+		verified() { return this.userStore.verified },
+		schoolName() { return this.userStore.schoolName },
+		studentId() { return this.userStore.studentId },
+		verifyDate() { return this.userStore.verifyDate }
 	},
 	onShow() {
-		this.loadProfile()
+		this.userStore.initFromStorage()
+		this.mascotStore.loadFromStorage()
 		this.loadRunStats()
-		this.loadMascotData()
 		this.checkSignIn()
-		this.loadVerifyData()
 		this.fetchVerifyFromApi()
 	},
 	methods: {
-loadProfile() {
-			try {
-				var data = uni.getStorageSync('campus_profile')
-				if (data) {
-					var p = JSON.parse(data)
-					if (p.name) this.userName = p.name
-					if (p.dept) this.userDept = p.dept
-					this.avatarEmoji = this.userName.charAt(0)
-				}
-			} catch (e) {}
-		},
 		loadRunStats() {
-			try {
-				var data = uni.getStorageSync('campus_run_history')
-				if (data) {
-					var history = JSON.parse(data)
-					var totalKm = 0
-					var totalCal = 0
-					history.forEach(function(item) {
-						totalKm += parseFloat(item.distance) || 0
-						totalCal += parseInt(item.calories) || 0
-					})
-					this.totalKm = totalKm.toFixed(1)
-					this.totalRuns = history.length.toString()
-					this.totalCalories = totalCal.toString()
-				}
-			} catch (e) {}
-		},
-		loadMascotData() {
-			try {
-				var data = uni.getStorageSync('campus_mascot')
-				if (data) {
-					var m = JSON.parse(data)
-					if (m.emoji) this.mascotEmoji = m.emoji
-					if (m.name) this.mascotName = m.name
-					if (m.level) this.mascotLevel = m.level
-					if (m.exp) this.mascotExp = m.exp
-					if (m.maxExp) this.mascotMaxExp = m.maxExp
-				}
-			} catch (e) {}
+			const sportStore = useSportStore()
+			sportStore.loadFromStorage()
+			this.totalKm = sportStore.totalDistance
+			this.totalRuns = sportStore.totalRuns
+			this.totalCalories = sportStore.totalCalories
 		},
 		checkSignIn() {
-			var today = new Date()
-			var dateStr = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
-			try {
-				var data = uni.getStorageSync('campus_signin')
-				if (data === dateStr) {
-					this.signed = true
-					this.signDate = dateStr
-				}
-			} catch (e) {}
+			const signinStore = useSigninStore()
+			signinStore.loadFromStorage()
+			if (signinStore.checkToday()) {
+				this.signed = true
+				this.signDate = signinStore.todayDateStr
+			}
 		},
 		doSignIn() {
 			if (this.signed) return
-			var today = new Date()
-			var dateStr = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
-			uni.setStorageSync('campus_signin', dateStr)
-			this.signed = true
-			this.signDate = dateStr
+			const signinStore = useSigninStore()
+			signinStore.loadFromStorage()
+			if (signinStore.signIn()) {
+				this.signed = true
+				this.signDate = signinStore.todayDateStr
+			}
 
 			// 给吉祥物加经验
-			try {
-				var data = uni.getStorageSync('campus_mascot')
-				var m = data ? JSON.parse(data) : { emoji: '\u{1F431}', name: '小喵', level: 5, exp: 680, maxExp: 1000 }
-				m.exp = (m.exp || 0) + 10
-				if (m.exp >= m.maxExp) {
-					m.level = (m.level || 1) + 1
-					m.exp = m.exp - m.maxExp
-					m.maxExp = Math.round(m.maxExp * 1.5)
-				}
-				uni.setStorageSync('campus_mascot', JSON.stringify(m))
-				this.mascotExp = m.exp
-				this.mascotLevel = m.level
-				this.mascotMaxExp = m.maxExp
-			} catch (e) {}
+			this.mascotStore.addExp(10)
 
 			uni.showToast({ title: '签到成功 +10经验', icon: 'none' })
 		},
@@ -379,13 +334,10 @@ loadProfile() {
 				uni.showToast({ title: '昵称不能为空', icon: 'none' })
 				return
 			}
-			this.userName = this.editName.trim()
-			this.userDept = this.editDept.trim()
-			this.avatarEmoji = this.userName.charAt(0)
-			uni.setStorageSync('campus_profile', JSON.stringify({
-				name: this.userName,
-				dept: this.userDept
-			}))
+			this.userStore.updateProfile({
+				name: this.editName.trim(),
+				dept: this.editDept.trim()
+			})
 			this.showEdit = false
 			uni.showToast({ title: '保存成功', icon: 'none' })
 		},
@@ -402,7 +354,8 @@ loadProfile() {
 				content: '确定要清除所有跑步数据吗？此操作不可恢复。',
 				success: function(res) {
 					if (res.confirm) {
-						uni.removeStorageSync('campus_run_history')
+						const sportStore = useSportStore()
+						sportStore.clearHistory()
 						_this.totalKm = '0.0'
 						_this.totalRuns = '0'
 						_this.totalCalories = '0'
@@ -419,13 +372,7 @@ loadProfile() {
 				content: '确定要重置吉祥物吗？等级和经验将回到初始状态。',
 				success: function(res) {
 					if (res.confirm) {
-						var m = { emoji: '\u{1F431}', name: '小喵', level: 1, exp: 0, maxExp: 100 }
-						uni.setStorageSync('campus_mascot', JSON.stringify(m))
-						_this.mascotEmoji = m.emoji
-						_this.mascotName = m.name
-						_this.mascotLevel = m.level
-						_this.mascotExp = m.exp
-						_this.mascotMaxExp = m.maxExp
+						_this.mascotStore.reset()
 						_this.showSettingPanel = false
 						uni.showToast({ title: '已重置', icon: 'none' })
 					}
@@ -433,29 +380,9 @@ loadProfile() {
 			})
 		},
 		// ==================== 学校认证 ====================
-		loadVerifyData() {
-			try {
-				var data = uni.getStorageSync('campus_school_verify')
-				console.log('[Profile] loadVerifyData raw:', data)
-				if (data) {
-					var v = JSON.parse(data)
-					console.log('[Profile] loadVerifyData parsed:', JSON.stringify(v))
-					if (v.verified) {
-						this.verified = true
-						this.schoolName = v.schoolName || ''
-						this.studentId = v.studentId || ''
-						this.verifyDate = v.verifyDate || ''
-					}
-				} else {
-					console.log('[Profile] loadVerifyData: no data found')
-				}
-			} catch (e) {
-				console.error('[Profile] loadVerifyData error:', e)
-			}
-		},
 		fetchVerifyFromApi() {
 			var _this = this
-			var token = uni.getStorageSync('campus_token')
+			var token = this.userStore.token
 			if (!token) return
 			uni.request({
 				url: 'http://192.168.31.98:3000/api/auth/verify',
@@ -465,12 +392,12 @@ loadProfile() {
 					if (res.data && res.data.success && res.data.data) {
 						var d = res.data.data
 						if (d.verified) {
-							_this.verified = true
-							_this.schoolName = d.schoolName || ''
-							_this.verifyDate = d.verifyDate || ''
-							uni.setStorageSync('campus_school_verify', JSON.stringify({
-								verified: true, schoolName: d.schoolName, verifyDate: d.verifyDate
-							}))
+							_this.userStore.setVerified({
+								verified: true,
+								schoolName: d.schoolName || '',
+								studentId: d.studentId || '',
+								verifyDate: d.verifyDate || ''
+							})
 						}
 					}
 				},
@@ -529,23 +456,15 @@ loadProfile() {
 								String(now.getMonth() + 1).padStart(2, '0') + '-' +
 								String(now.getDate()).padStart(2, '0')
 
-							_this.verified = true
-							_this.schoolName = schoolName
-							_this.studentId = studentId
-							_this.verifyDate = dateStr
-
-							// 保存到本地存储
-							try {
-								uni.setStorageSync('campus_school_verify', JSON.stringify({
-									verified: true, schoolName: schoolName,
-									studentId: studentId, verifyDate: dateStr
-								}))
-							} catch (e) {
-								console.error('localStorage save failed:', e)
-							}
+							_this.userStore.setVerified({
+								verified: true,
+								schoolName: schoolName,
+								studentId: studentId,
+								verifyDate: dateStr
+							})
 
 							// 保存到服务器
-							var token = uni.getStorageSync('campus_token')
+							var token = _this.userStore.token
 							if (token) {
 								uni.request({
 									url: 'http://192.168.31.98:3000/api/auth/verify',
@@ -571,14 +490,10 @@ loadProfile() {
 				content: '确定要解除学校认证吗？解除后需要重新认证才能使用相关功能。',
 				success: function(res) {
 					if (res.confirm) {
-						uni.removeStorageSync('campus_school_verify')
-						_this.verified = false
-						_this.schoolName = ''
-						_this.studentId = ''
-						_this.verifyDate = ''
+						_this.userStore.clearVerify()
 						_this.showVerifyPanel = false
 						// 同步到服务器
-						var token = uni.getStorageSync('campus_token')
+						var token = _this.userStore.token
 						if (token) {
 							uni.request({
 								url: 'http://192.168.31.98:3000/api/auth/verify',
@@ -1191,4 +1106,3 @@ loadProfile() {
 
 /* 自定义底部导航 */
 </style>
-

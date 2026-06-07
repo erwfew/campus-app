@@ -308,6 +308,7 @@
 <script>
 import BottomNav from '../../components/bottom-nav/bottom-nav.vue'
 import { homeworkApi } from '../../utils/request.js'
+import { useCourseStore, useScheduleStore, useHomeworkStore, useAttendanceStore } from '@/store/pinia'
 
 export default {
   components: { BottomNav },
@@ -460,25 +461,9 @@ export default {
 		attendance() {
 			var total = this.courses.length
 			if (total === 0) return { rate: 0, attended: 0, absent: 0 }
-			try {
-				var data = uni.getStorageSync('campus_attendance_records')
-				if (data) {
-					var records = JSON.parse(data)
-					var attended = 0
-					var absent = 0
-					this.courses.forEach(function(c) {
-						var key = c.name + '_' + c.weekDay + '_' + c.startSection
-						if (records[key] === 'attended') attended++
-						else if (records[key] === 'absent') absent++
-					})
-					return {
-						rate: (attended + absent) > 0 ? Math.round((attended / (attended + absent)) * 100) : 0,
-						attended: attended,
-						absent: absent
-					}
-				}
-			} catch (e) {}
-			return { rate: 0, attended: 0, absent: 0 }
+			const attendanceStore = useAttendanceStore()
+			attendanceStore.loadFromStorage()
+			return attendanceStore.getStats(this.courses)
 		}
 	},
 	onShow() {
@@ -496,12 +481,9 @@ export default {
 			return parseInt(parts[0]) * 60 + parseInt(parts[1])
 		},
 		loadCourses() {
-			try {
-				var data = uni.getStorageSync('campus_courses')
-				this.courses = data ? JSON.parse(data) : []
-			} catch (e) {
-				this.courses = []
-			}
+			const courseStore = useCourseStore()
+			courseStore.loadFromStorage()
+			this.courses = courseStore.allCourses
 		},
 		loadHomeworksFromServer() {
 			var self = this
@@ -514,17 +496,14 @@ export default {
 			})
 		},
 		loadHomeworkDoneStatus() {
-			try {
-				var data = uni.getStorageSync('campus_homework_done')
-				if (data) {
-					this.homeworkDoneStatus = JSON.parse(data)
-				}
-			} catch (e) {
-				this.homeworkDoneStatus = {}
-			}
+			const hwStore = useHomeworkStore()
+			hwStore.loadFromStorage()
+			this.homeworkDoneStatus = hwStore.doneMap
 		},
 		saveHomeworkDoneStatus() {
-			uni.setStorageSync('campus_homework_done', JSON.stringify(this.homeworkDoneStatus))
+			const hwStore = useHomeworkStore()
+			hwStore.doneMap = this.homeworkDoneStatus
+			hwStore.saveToStorage()
 		},
 		getCoursesByDay(dayIndex) {
 			var week = this.selectedWeek || this.currentWeek
@@ -629,20 +608,17 @@ export default {
 			this.saveHomeworkDoneStatus()
 		},
 		loadSettings() {
-			try {
-				var data = uni.getStorageSync('campus_schedule_settings')
-				if (data) {
-					var s = JSON.parse(data)
-					for (var key in s) {
-						if (this.settings.hasOwnProperty(key)) {
-							this.settings[key] = s[key]
-						}
-					}
+			const scheduleStore = useScheduleStore()
+			scheduleStore.loadFromStorage()
+			for (var key in scheduleStore.settings) {
+				if (this.settings.hasOwnProperty(key)) {
+					this.settings[key] = scheduleStore.settings[key]
 				}
-			} catch (e) {}
+			}
 		},
 		saveSettings() {
-			uni.setStorageSync('campus_schedule_settings', JSON.stringify(this.settings))
+			const scheduleStore = useScheduleStore()
+			scheduleStore.updateSettings(this.settings)
 			this.showSettingsModal = false
 			// Force re-render by triggering reactive update
 			this.settings = JSON.parse(JSON.stringify(this.settings))
@@ -680,14 +656,9 @@ export default {
 			return course.name + '_' + course.weekDay + '_' + course.startSection
 		},
 		getAttendanceStatus(course) {
-			try {
-				var records = uni.getStorageSync('campus_attendance_records')
-				if (records) {
-					var parsed = JSON.parse(records)
-					return parsed[this.getAttendanceKey(course)] || ''
-				}
-			} catch (e) {}
-			return ''
+			const attendanceStore = useAttendanceStore()
+			attendanceStore.loadFromStorage()
+			return attendanceStore.getStatus(course)
 		},
 		getAttendanceLabel(course) {
 			var status = this.getAttendanceStatus(course)
@@ -701,20 +672,15 @@ export default {
 			uni.showActionSheet({
 				itemList: items,
 				success: function(res) {
-					var key = self.getAttendanceKey(course)
-					var records = {}
-					try {
-						var data = uni.getStorageSync('campus_attendance_records')
-						if (data) records = JSON.parse(data)
-					} catch (e) {}
+					const attendanceStore = useAttendanceStore()
+					attendanceStore.loadFromStorage()
 					if (res.tapIndex === 0) {
-						records[key] = 'attended'
+						attendanceStore.setStatus(course, 'attended')
 					} else if (res.tapIndex === 1) {
-						records[key] = 'absent'
+						attendanceStore.setStatus(course, 'absent')
 					} else {
-						delete records[key]
+						attendanceStore.setStatus(course, 'delete')
 					}
-					uni.setStorageSync('campus_attendance_records', JSON.stringify(records))
 					uni.showToast({ title: '记录已更新', icon: 'success' })
 				}
 			})

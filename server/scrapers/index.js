@@ -5,7 +5,38 @@
  * 使用 Puppeteer 模拟浏览器登录，避免各种加密/验证码问题
  */
 
-const puppeteer = require('puppeteer')
+const puppeteer = require('puppeteer-core')
+
+// ============ Chrome 路径查找 ============
+
+/**
+ * 按优先级查找系统已安装的 Chrome 浏览器
+ * @returns {string} Chrome 可执行文件路径
+ */
+function findChromePath() {
+  const fs = require('fs')
+  const paths = [
+    // Windows - Chrome
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    process.env.LOCALAPPDATA + '\\Google\\Chrome\\Application\\chrome.exe',
+    // Windows - Edge (Chromium 内核，puppeteer-core 兼容)
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+    // macOS
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    // Linux
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium-browser',
+    '/snap/bin/chromium',
+    '/usr/bin/microsoft-edge',
+  ]
+  for (const p of paths) {
+    if (fs.existsSync(p)) return p
+  }
+  throw new Error('未找到 Chrome 浏览器，请先安装 Google Chrome')
+}
 
 // ============ 通用登录流程 ============
 
@@ -23,6 +54,7 @@ async function scrapeCourses({ systemType, eduUrl, username, password }) {
   try {
     browser = await puppeteer.launch({
       headless: 'new',
+      executablePath: findChromePath(),
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
       timeout: 30000
     })

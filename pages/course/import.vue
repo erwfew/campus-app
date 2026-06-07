@@ -74,6 +74,8 @@
 </template>
 
 <script>
+import { useCourseStore } from '@/store/pinia'
+
 export default {
 	data() {
 		return {
@@ -81,21 +83,20 @@ export default {
 		}
 	},
 	onShow() {
-		this.loadCourses()
+		const courseStore = useCourseStore()
+		courseStore.loadFromStorage()
+		this.courses = courseStore.allCourses
 	},
 	methods: {
 		loadCourses() {
-			try {
-				var data = uni.getStorageSync('campus_courses')
-				if (data) {
-					this.courses = JSON.parse(data)
-				}
-			} catch (e) {
-				this.courses = []
-			}
+			const courseStore = useCourseStore()
+			courseStore.loadFromStorage()
+			this.courses = courseStore.allCourses
 		},
 		saveCourses() {
-			uni.setStorageSync('campus_courses', JSON.stringify(this.courses))
+			const courseStore = useCourseStore()
+			courseStore.allCourses = this.courses
+			courseStore.saveToStorage()
 		},
 		goManualAdd() {
 			uni.navigateTo({ url: '/pages/course/add' })

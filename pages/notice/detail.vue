@@ -31,6 +31,8 @@
 </template>
 
 <script>
+import { useNoticeStore } from '@/store/pinia'
+
 export default {
 	data() {
 		return {
@@ -58,17 +60,13 @@ export default {
 			return /^\d+\./.test(line.trim()) || /^[-•]/.test(line.trim())
 		},
 		loadNotice(id) {
-			try {
-				var cached = uni.getStorageSync('campus_notices')
-				if (cached) {
-					var list = JSON.parse(cached)
-					var found = list.find(function(n) { return n.id == id })
-					if (found) {
-						this.notice = found
-						return
-					}
-				}
-			} catch (e) {}
+			const noticeStore = useNoticeStore()
+			noticeStore.loadFromStorage()
+			var found = noticeStore.getNoticeById(parseInt(id))
+			if (found) {
+				this.notice = found
+				return
+			}
 			var defaults = [
 				{ id: 1, tag: '热门', tagType: 'hot', title: '图书馆本周六举办读书分享会', content: '图书馆将于本周六下午2点在三楼报告厅举办读书分享会，欢迎同学们踊跃参加。本次活动主题为"经典重读"，届时将有学长学姐分享读书心得。\n\n活动流程：\n1. 签到入场（13:30-14:00）\n2. 主持人开场\n3. 嘉宾分享（每人15分钟）\n4. 自由交流环节\n5. 合影留念\n\n参加活动的同学可获得图书馆精美书签一枚。', date: '2026-03-28', author: '图书馆' },
 				{ id: 2, tag: '新', tagType: 'new', title: '下周一全校停课一天通知', content: '接上级通知，因校园设施维护需要，下周一（3月30日）全校停课一天，请各学院做好教学调整安排。\n\n注意事项：\n1. 请各任课老师提前安排好补课计划\n2. 在校学生注意安全，远离施工区域\n3. 食堂正常开放\n4. 图书馆正常开放', date: '2026-03-27', author: '教务处' },

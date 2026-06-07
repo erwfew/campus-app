@@ -1,139 +1,196 @@
-// API 请求封装（uni-app 环境）
-var BASE_URL = 'http://192.168.31.98:3000'
+﻿// API 请求封装（uni-app 环境）
+var BASE_URL = 'http://localhost:3000'
+
+try {
+  var appConfig = require('../config.js')
+  if (appConfig && appConfig.BASE_URL) BASE_URL = appConfig.BASE_URL
+} catch (e) {}
+
+var TOKEN_KEY = 'campus_token'
+
+function getToken() {
+  try {
+    return uni.getStorageSync(TOKEN_KEY) || ''
+  } catch (e) {
+    return ''
+  }
+}
+
+function setToken(token) {
+  try {
+    uni.setStorageSync(TOKEN_KEY, token)
+  } catch (e) {}
+}
+
+function removeToken() {
+  try {
+    uni.removeStorageSync(TOKEN_KEY)
+  } catch (e) {}
+}
 
 // 请求拦截器列表
 var requestInterceptors = []
 // 响应拦截器列表
 var responseInterceptors = []
 
-/**
- * 注册请求拦截器
- * @param {Function} fn - 接收 config 对象，返回修改后的 config 或 Promise
- */
 function addRequestInterceptor(fn) {
-	requestInterceptors.push(fn)
+  requestInterceptors.push(fn)
 }
 
-/**
- * 注册响应拦截器
- * @param {Function} fn - 接收 (response, resolve, reject)，调用 resolve/reject 继续链
- */
 function addResponseInterceptor(fn) {
-	responseInterceptors.push(fn)
+  responseInterceptors.push(fn)
 }
 
-/**
- * 刷新 token（示例，实际接入后端时实现）
- */
 var refreshTokenFn = null
 function setRefreshToken(fn) {
-	refreshTokenFn = fn
+  refreshTokenFn = fn
 }
 
 function request(options) {
-	return new Promise(function(resolve, reject) {
-		var config = {
-			url: BASE_URL + options.url,
-			method: options.method || 'GET',
-			data: options.data || {},
-			header: Object.assign({
-				'Content-Type': 'application/json'
-			}, options.header || {})
-		}
+  return new Promise(function (resolve, reject) {
+    var token = getToken()
 
-		// 执行请求拦截器
-		var chain = Promise.resolve(config)
-		requestInterceptors.forEach(function(interceptor) {
-			chain = chain.then(function(cfg) {
-				return interceptor(cfg) || cfg
-			})
-		})
+    var config = {
+      url: BASE_URL + options.url,
+      method: options.method || 'GET',
+      data: options.data || {},
+      timeout: options.timeout || 15000,
+      header: Object.assign(
+        {
+          'Content-Type': 'application/json'
+        },
+        token ? { Authorization: 'Bearer ' + token } : {},
+        options.header || {}
+      )
+    }
 
-		chain.then(function(finalConfig) {
-			uni.request({
-				url: finalConfig.url,
-				method: finalConfig.method,
-				data: finalConfig.data,
-				header: finalConfig.header,
-				success: function(res) {
-					handleResponse(res, resolve, reject)
-				},
-				fail: function(err) {
-					reject({ error: { message: '网络连接失败', detail: err } })
-				}
-			})
-		}).catch(reject)
-	})
+    var chain = Promise.resolve(config)
+    requestInterceptors.forEach(function (interceptor) {
+      chain = chain.then(function (cfg) {
+        return interceptor(cfg) || cfg
+      })
+    })
+
+    chain
+      .then(function (finalConfig) {
+        uni.request({
+          url: finalConfig.url,
+          method: finalConfig.method,
+          data: finalConfig.data,
+          header: finalConfig.header,
+          timeout: finalConfig.timeout || 15000,
+          success: function (res) {
+            handleResponse(res, resolve, reject)
+          },
+          fail: function (err) {
+            reject({ error: { message: '网络连接失败', detail: err } })
+          }
+        })
+      })
+      .catch(reject)
+  })
 }
 
 function handleResponse(res, resolve, reject) {
-	// 执行响应拦截器
-	var chain = Promise.resolve(res)
-	responseInterceptors.forEach(function(interceptor) {
-		chain = chain.then(function(response) {
-			return new Promise(function(nextResolve, nextReject) {
-				interceptor(response, nextResolve, nextReject)
-			})
-		})
-	})
+  var chain = Promise.resolve(res)
+  responseInterceptors.forEach(function (interceptor) {
+    chain = chain.then(function (response) {
+      return new Promise(function (nextResolve, nextReject) {
+        interceptor(response, nextResolve, nextReject)
+      })
+    })
+  })
 
-	chain.then(function(finalRes) {
-		if (finalRes.statusCode >= 200 && finalRes.statusCode < 300) {
-			resolve(finalRes.data)
-		} else {
-			reject(finalRes.data || { error: { message: '请求失败' } })
-		}
-	}).catch(reject)
+  chain
+    .then(function (finalRes) {
+      if (finalRes.statusCode >= 200 && finalRes.statusCode < 300) {
+        resolve(finalRes.data)
+      } else if (finalRes.statusCode === 401) {
+        removeToken()
+        if (refreshTokenFn) {
+          refreshTokenFn().catch(function () {})
+        }
+        reject(finalRes.data || { error: { code: 401, message: '登录已过期，请重新登录' } })
+      } else {
+        reject(finalRes.data || { error: { message: '请求失败' } })
+      }
+    })
+    .catch(reject)
 }
-
-// ============ 内置拦截器 ============
-
-// 401 自动刷新 token（示例）
-addResponseInterceptor(function(res, resolve, reject) {
-	if (res.statusCode === 401 && refreshTokenFn) {
-		refreshTokenFn().then(function() {
-			// token 刷新成功，重新发起请求（简化处理：直接 reject 让调用方重试）
-			reject({ error: { code: 401, message: 'token已刷新，请重试' } })
-		}).catch(function() {
-			resolve(res)
-		})
-	} else {
-		resolve(res)
-	}
-})
 
 // ============ API 模块 ============
 
+var authApi = {
+  login: function (data) {
+    return request({ url: '/api/auth/login', method: 'POST', data: data })
+  },
+  register: function (data) {
+    return request({ url: '/api/auth/register', method: 'POST', data: data })
+  },
+  me: function () {
+    return request({ url: '/api/auth/me', method: 'GET' })
+  },
+  verify: function () {
+    return request({ url: '/api/auth/verify', method: 'GET' })
+  },
+  changePassword: function (data) {
+    return request({ url: '/api/auth/password', method: 'PUT', data: data })
+  }
+}
+
+var studentApi = {
+  courses: function () {
+    return request({ url: '/api/student/courses', method: 'GET' })
+  },
+  todayCourses: function () {
+    return request({ url: '/api/student/today-courses', method: 'GET' })
+  },
+  attendance: function () {
+    return request({ url: '/api/student/attendance', method: 'GET' })
+  },
+  profile: function () {
+    return request({ url: '/api/student/profile', method: 'GET' })
+  },
+  grades: function () {
+    return request({ url: '/api/student/grades', method: 'GET' })
+  }
+}
+
 var importApi = {
-	preview: function(data) {
-		return request({
-			url: '/api/import/preview',
-			method: 'POST',
-			data: data
-		})
-	},
-	confirm: function(data) {
-		return request({
-			url: '/api/import/confirm',
-			method: 'POST',
-			data: data
-		})
-	}
+  preview: function (data) {
+    return request({ url: '/api/import/preview', method: 'POST', data: data })
+  },
+  confirm: function (data) {
+    return request({ url: '/api/import/confirm', method: 'POST', data: data })
+  }
 }
 
 var homeworkApi = {
-	fetch: function() {
-		return request({
-			url: '/api/homework',
-			method: 'GET'
-		})
-	}
+  fetch: function () {
+    return request({ url: '/api/homework', method: 'GET' })
+  }
+}
+
+var noticeApi = {
+  list: function () {
+    return request({ url: '/api/notices', method: 'GET' })
+  }
+}
+
+var rankingApi = {
+  list: function () {
+    return request({ url: '/api/ranking', method: 'GET' })
+  }
 }
 
 export default {
-	request: request,
-	addRequestInterceptor: addRequestInterceptor,
-	addResponseInterceptor: addResponseInterceptor,
-	setRefreshToken: setRefreshToken
+  request: request,
+  addRequestInterceptor: addRequestInterceptor,
+  addResponseInterceptor: addResponseInterceptor,
+  setRefreshToken: setRefreshToken,
+  getToken: getToken,
+  setToken: setToken,
+  removeToken: removeToken
 }
-export { importApi, homeworkApi }
+
+export { authApi, studentApi, importApi, homeworkApi, noticeApi, rankingApi }

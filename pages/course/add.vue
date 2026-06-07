@@ -121,6 +121,8 @@
 </template>
 
 <script>
+import { useCourseStore } from '@/store/pinia'
+
 export default {
 	data() {
 		return {
@@ -146,6 +148,8 @@ export default {
 		}
 	},
 	onLoad(options) {
+		const courseStore = useCourseStore()
+		courseStore.loadFromStorage()
 		if (options.index !== undefined) {
 			this.editIndex = parseInt(options.index)
 		}
@@ -207,21 +211,16 @@ export default {
 				return
 			}
 
-			var courses = []
-			try {
-				var data = uni.getStorageSync('campus_courses')
-				if (data) courses = JSON.parse(data)
-			} catch (e) {}
-
+			const courseStore = useCourseStore()
 			var courseData = JSON.parse(JSON.stringify(this.form))
 
 			if (this.editIndex >= 0) {
-				courses[this.editIndex] = courseData
+				courseStore.allCourses[this.editIndex] = courseData
+				courseStore.saveToStorage()
 			} else {
-				courses.push(courseData)
+				courseStore.addCourse(courseData)
 			}
 
-			uni.setStorageSync('campus_courses', JSON.stringify(courses))
 			uni.showToast({
 				title: this.editIndex >= 0 ? '已更新' : '已添加',
 				icon: 'success'

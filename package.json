@@ -4,9 +4,21 @@
   "description": "效园通 - 一站式校园生态综合平台",
   "scripts": {
     "start": "node server/app.js",
-    "build": "cd server && npm install"
+    "build": "cd server && npm install",
+    "lint": "eslint server/ --ext .js",
+    "lint:fix": "eslint server/ --ext .js --fix",
+    "format": "prettier --write \"server/**/*.js\" \"pages/**/*.vue\" \"components/**/*.vue\" \"common/**/*.js\" \"utils/**/*.js\""
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.0",
+    "prettier": "^3.2.0"
+  },
+  "dependencies": {
+    "pinia": "^3.0.4"
   }
 }

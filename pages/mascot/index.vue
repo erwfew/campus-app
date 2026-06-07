@@ -56,6 +56,8 @@
 </template>
 
 <script>
+import { useMascotStore } from '@/store/pinia'
+
 export default {
 	data() {
 		return {
@@ -67,36 +69,21 @@ export default {
 		}
 	},
 	onShow() {
-		this.loadMascot()
+		const mascotStore = useMascotStore()
+		mascotStore.loadFromStorage()
+		this.emoji = mascotStore.emoji
+		this.name = mascotStore.name
+		this.level = mascotStore.level
+		this.exp = mascotStore.exp
+		this.maxExp = mascotStore.maxExp
 	},
 	methods: {
-		loadMascot() {
-			try {
-				var data = uni.getStorageSync('campus_mascot')
-				if (data) {
-					var m = JSON.parse(data)
-					if (m.emoji) this.emoji = m.emoji
-					if (m.name) this.name = m.name
-					if (m.level) this.level = m.level
-					if (m.exp) this.exp = m.exp
-					if (m.maxExp) this.maxExp = m.maxExp
-				}
-			} catch (e) {}
-		},
-		saveMascot() {
-			uni.setStorageSync('campus_mascot', JSON.stringify({
-				emoji: this.emoji,
-				name: this.name,
-				level: this.level,
-				exp: this.exp,
-				maxExp: this.maxExp
-			}))
-		},
 		changeEmoji() {
+			const mascotStore = useMascotStore()
 			var emojis = ['\u{1F431}', '\u{1F434}', '\u{1F436}', '\u{1F437}', '\u{1F439}']
 			var idx = emojis.indexOf(this.emoji)
 			this.emoji = emojis[(idx + 1) % emojis.length]
-			this.saveMascot()
+			mascotStore.update({ emoji: this.emoji })
 		}
 	}
 }

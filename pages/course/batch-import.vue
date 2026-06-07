@@ -69,6 +69,8 @@
 </template>
 
 <script>
+import { useCourseStore } from '@/store/pinia'
+
 export default {
 	data() {
 		return {
@@ -157,14 +159,10 @@ export default {
 				return
 			}
 
-			var courses = []
-			try {
-				var data = uni.getStorageSync('campus_courses')
-				if (data) courses = JSON.parse(data)
-			} catch (e) {}
-
-			courses = courses.concat(this.parsedCourses)
-			uni.setStorageSync('campus_courses', JSON.stringify(courses))
+			const courseStore = useCourseStore()
+			courseStore.loadFromStorage()
+			courseStore.allCourses = courseStore.allCourses.concat(this.parsedCourses)
+			courseStore.saveToStorage()
 
 			uni.showToast({
 				title: '成功导入 ' + this.parsedCourses.length + ' 门课程',
