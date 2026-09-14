@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   check:
@@ -16,6 +16,8 @@ jobs:
           node-version: 20
       - name: Install dependencies
         run: cd server && npm ci
+      - name: Unit tests
+        run: cd server && npm test
       - name: Start server smoke test
         env:
           JWT_SECRET: ci-test-secret-not-for-production
