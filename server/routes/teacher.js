@@ -9,7 +9,7 @@ const attendanceService = require('../services/attendanceService');
 const homeworkService = require('../services/homeworkService');
 const gradeService = require('../services/gradeService');
 const noticeService = require('../services/noticeService');
-const { broadcast } = require('../app');
+const { broadcast } = require('../utils/broadcast');
 
 // Express 4.x 不自动捕获 async 路由的 rejected promise，需要包装转发到 error handler
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -114,6 +114,10 @@ router.get('/homework/:id/submissions', asyncHandler(async (req, res) => {
 router.put('/homework/:id/grade', asyncHandler(async (req, res) => {
   const { studentId, score, feedback } = req.body;
   if (!studentId || score === undefined) throw new AppError('INVALID_PARAMS', '请填写评分', 400);
+
+  // 校验作业归属当前教师
+  const homework = await homeworkService.getSubmissions(req.params.id, req.user.id);
+  if (!homework) throw new AppError('NOT_FOUND', '作业不存在', 404);
 
   const data = await homeworkService.gradeHomework(req.params.id, studentId, score, feedback);
   res.json({ success: true, data });

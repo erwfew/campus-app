@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "效园通 - 一站式校园生态综合平台",
   "scripts": {
-    "start": "node server/app.js",
+    "start": "cd server && node app.js",
+    "desktop": "electron .",
+    "test": "cd server && npm test",
     "build": "cd server && npm install",
     "lint": "eslint server/ --ext .js",
     "lint:fix": "eslint server/ --ext .js --fix",
@@ -13,6 +15,7 @@
     "node": ">=20.0.0"
   },
   "devDependencies": {
+    "electron": "^28.3.3",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.0",

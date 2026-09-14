@@ -230,11 +230,18 @@ async function scrapeWanxiang(page, eduUrl, username, password) {
   await new Promise(r => setTimeout(r, 2000))
   
   // 直接用 GET 请求课表 JSON 数据
-  const courseJson = await page.evaluate(async () => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  // 学年：9月及以后用当前年，否则用上一年
+  const xnm = currentMonth >= 9 ? currentYear : currentYear - (currentMonth <= 1 ? 1 : 0);
+  // 学期：秋季=12（第1学期），春季=3（第2学期）
+  const xqm = (currentMonth >= 9 || currentMonth <= 1) ? '12' : '3';
+  const courseJson = await page.evaluate(async (year, term) => {
     const params = new URLSearchParams({
       gnmkdm: 'N2151',
-      xnm: '2025',
-      xqm: '12',
+      xnm: String(year),
+      xqm: term,
       kzlx: 'ck',
       xsdm: '',
       kclbdm: ''
@@ -244,7 +251,7 @@ async function scrapeWanxiang(page, eduUrl, username, password) {
       headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     return await resp.json()
-  })
+  }, xnm, xqm)
   console.log('[万向登录] 获取到课表 JSON! 课程数:', courseJson.kbList?.length || 0)
   
   // 将 JSON 数据存到 page 变量中供后续解析

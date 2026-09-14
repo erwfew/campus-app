@@ -50,16 +50,16 @@
                 "maps" : {
                     "amap" : {
                         "name" : "amapDdceVfG0",
-                        "appkey_ios" : "30a676912903ee1e2fbf2f7e52a54772",
-                        "appkey_android" : "30a676912903ee1e2fbf2f7e52a54772"
+                        "appkey_ios" : "e7ae66003393d5f24e44ce4cafcb612e",
+                        "appkey_android" : "e7ae66003393d5f24e44ce4cafcb612e"
                     }
                 },
                 "geolocation" : {
                     "amap" : {
                         "name" : "amapDdceVfG0",
                         "__platform__" : [ "ios", "android" ],
-                        "appkey_ios" : "30a676912903ee1e2fbf2f7e52a54772",
-                        "appkey_android" : "30a676912903ee1e2fbf2f7e52a54772"
+                        "appkey_ios" : "e7ae66003393d5f24e44ce4cafcb612e",
+                        "appkey_android" : "e7ae66003393d5f24e44ce4cafcb612e"
                     }
                 }
             }
@@ -93,7 +93,7 @@
         "title" : "效园通",
         "config" : {
             "map" : {
-                "key" : "30a676912903ee1e2fbf2f7e52a54772",
+                "key" : "e7ae66003393d5f24e44ce4cafcb612e",
                 "type" : "amap"
             }
         }

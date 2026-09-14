@@ -18,6 +18,15 @@ release/
 .env.local
 .env.*.local
 
+# 本地配置（后端地址等，参考 config.example.js）
+config.js
+
+# 损坏文件留档（已修复，仅本地参考）
+*.corrupted.bak
+
+# ZCode 会话目录
+.zcode/
+
 # 数据库文件（运行时生成）
 server/data/
 

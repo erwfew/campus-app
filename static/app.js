@@ -84,7 +84,7 @@ function showLoginPage() {
         '</div>' +
         '<div id="loginError" style="color:#f44336;margin-bottom:16px;font-size:14px;display:none;"></div>' +
         '<button onclick="doLogin()" style="width:100%;padding:14px;background:linear-gradient(135deg,#4361ee,#3a56d4);color:white;border:none;border-radius:12px;font-size:16px;font-weight:bold;cursor:pointer;">登录</button>' +
-        '<p style="margin-top:16px;color:#999;font-size:12px;">默认账号：stu20230001 / student123</p>' +
+        '<p style="margin-top:16px;color:#999;font-size:12px;">默认账号：stu20230001 / 88888888</p>' +
       '</div>' +
     '</div>';
 }

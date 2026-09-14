@@ -114,7 +114,10 @@ function getCurrentSemester() {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
-  if (month >= 9 || month <= 1) return `${year}-1`;
+  // 9月-次年1月 → 秋季学期 (year-1 if Jan, year if Sep-Dec)
+  // 2月-8月 → 春季学期
+  if (month >= 9) return `${year}-1`;
+  if (month <= 1) return `${year - 1}-1`;
   return `${year}-2`;
 }
 

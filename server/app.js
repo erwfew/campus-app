@@ -1,16 +1,19 @@
-﻿const express = require('express');
+const express = require('express');
 const http = require('http');
 const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const WebSocket = require('ws');
+const { addClient, removeClient, broadcast } = require('./utils/broadcast');
 const config = require('./config');
 const { initDb, closeDb, all } = require('./db');
 const seed = require('./db/seed');
 const { errorHandler } = require('./middleware/errorHandler');
 const { cacheMiddleware } = require('./middleware/cache');
 const rateLimit = require('./middleware/rateLimit');
+const { authenticate } = require('./middleware/auth');
+const jwt = require('jsonwebtoken');
 const importRoutes = require('./routes/import');
 const importDataRoutes = require('./routes/import-data');
 const homeworkRoutes = require('./routes/homework');
@@ -18,8 +21,12 @@ const authRoutes = require('./routes/auth');
 const teacherRoutes = require('./routes/teacher');
 const adminRoutes = require('./routes/admin');
 const studentRoutes = require('./routes/student');
+const mapRoutes = require('./routes/map');
 
 const app = express();
+
+// 反向代理后正确获取客户端 IP（Render/Nginx 等）
+app.set('trust proxy', 1);
 
 // 安全头
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
@@ -28,11 +35,12 @@ app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false 
 app.use(compression());
 
 // CORS 配置
+// 注意: origin 为 '*' 时不能带 credentials（浏览器规范禁止）
 const corsOptions = {
   origin: config.corsOrigin === '*'
     ? '*'
     : config.corsOrigin.split(',').filter(Boolean).map(s => s.trim()),
-  credentials: true
+  credentials: config.corsOrigin !== '*'
 };
 if (config.corsOrigin) {
   app.use(cors(corsOptions));
@@ -40,16 +48,27 @@ if (config.corsOrigin) {
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-// 全局输入清理：防止 XSS 和格式化攻击
+// 全局输入清理：防止 XSS（只剥离危险标签，保留正常文本中的 < > 符号）
+function sanitizeStr(s) {
+  // 剥离 script/style/iframe 等危险标签及其内容
+  let out = s.replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '');
+  // 剥离自闭合危险标签
+  out = out.replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*\/?\s*>/gi, '');
+  // 剥离 on* 事件属性
+  out = out.replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+  // 剥离 javascript: 协议
+  out = out.replace(/javascript\s*:/gi, '');
+  return out.trim();
+}
 function sanitize(obj) {
-  if (typeof obj === 'string') {
-    return obj.replace(/<[^>]*>/g, '').trim();
-  }
+  if (typeof obj === 'string') return sanitizeStr(obj);
   if (Array.isArray(obj)) return obj.map(sanitize);
   if (obj && typeof obj === 'object') {
     const clean = {};
     for (const [k, v] of Object.entries(obj)) {
-      if (typeof v === 'string') clean[k] = v.replace(/<[^>]*>/g, '').trim();
+      if (typeof v === 'string') clean[k] = sanitizeStr(v);
+      else if (Array.isArray(v)) clean[k] = v.map(item => (typeof item === 'string' ? sanitizeStr(item) : sanitize(item)));
+      else if (v && typeof v === 'object') clean[k] = sanitize(v);
       else clean[k] = v;
     }
     return clean;
@@ -75,10 +94,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// 静态文件
+// 静态文件（只挂需要公开的目录，不暴露源码）
 app.use('/static', express.static(path.join(__dirname, '..', 'static')));
 app.use('/admin', express.static(path.join(__dirname, '..', 'admin')));
-app.use(express.static(path.join(__dirname, '..'), { index: 'index.html' }));
+// 只提供入口页面和样式，不遍历项目根目录（防止源码/.env 泄露）
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, '..', 'index.html')));
+app.get('/style.css', (req, res) => res.sendFile(path.join(__dirname, '..', 'style.css')));
 
 // better-sqlite3 自动持久化，无需手动 save
 
@@ -92,32 +113,6 @@ app.get('/api/health', (req, res) => {
       used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
       total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024), unit: 'MB'
     }
-  });
-});
-
-// 排行榜
-app.get('/api/ranking', cacheMiddleware(120000), (req, res) => {
-  const rankings = all(`
-    SELECT u.real_name as name,
-      ROUND(CAST(SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 1) as rate
-    FROM users u JOIN attendance a ON u.id = a.student_id
-    WHERE u.role = 'student' GROUP BY u.id ORDER BY rate DESC LIMIT 20
-  `);
-  res.json({ success: true, data: rankings.map((r, i) => ({ rank: i + 1, name: r.name, value: r.rate, unit: '%' })) });
-});
-
-// 校园公告
-app.get('/api/notices', cacheMiddleware(60000), (req, res) => {
-  const notices = all(`
-    SELECT n.*, u.real_name as author_name FROM notices n JOIN users u ON n.author_id = u.id
-    WHERE n.scope = 'school' ORDER BY n.created_at DESC LIMIT 30
-  `);
-  res.json({
-    success: true,
-    data: notices.map(n => ({
-      id: n.id, title: n.title, type: n.scope === 'school' ? '通知' : '课程',
-      date: n.created_at ? n.created_at.slice(0, 10) : '', important: !!n.important
-    }))
   });
 });
 
@@ -140,6 +135,38 @@ app.use('/api/import', importRoutes);
 app.use('/api/import-data', importDataRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/map', mapRoutes);
+
+// 排行榜（需登录，不暴露真实姓名）
+app.get('/api/ranking', authenticate, cacheMiddleware(120000), (req, res) => {
+  const rankings = all(`
+    SELECT u.real_name as name,
+      ROUND(CAST(SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 1) as rate
+    FROM users u JOIN attendance a ON u.id = a.student_id
+    WHERE u.role = 'student' GROUP BY u.id ORDER BY rate DESC LIMIT 20
+  `);
+  // 只返回姓名首字 + 学号后缀，保护隐私
+  res.json({ success: true, data: rankings.map((r, i) => ({
+    rank: i + 1,
+    name: r.name ? r.name.charAt(0) + '**' : '匿名',
+    value: r.rate, unit: '%'
+  })) });
+});
+
+// 校园公告（需登录）
+app.get('/api/notices', authenticate, cacheMiddleware(60000), (req, res) => {
+  const notices = all(`
+    SELECT n.*, u.real_name as author_name FROM notices n JOIN users u ON n.author_id = u.id
+    WHERE n.scope = 'school' ORDER BY n.created_at DESC LIMIT 30
+  `);
+  res.json({
+    success: true,
+    data: notices.map(n => ({
+      id: n.id, title: n.title, type: n.scope === 'school' ? '通知' : '课程',
+      date: n.created_at ? n.created_at.slice(0, 10) : '', important: !!n.important
+    }))
+  });
+});
 
 // 404
 app.use((req, res) => {
@@ -152,10 +179,9 @@ app.use(errorHandler);
 // ==================== WebSocket ====================
 
 const wss = new WebSocket.Server({ noServer: true })
-const wsClients = new Set()
 
 wss.on('connection', (ws) => {
-  wsClients.add(ws)
+  addClient(ws)
   ws._channel = ''
   ws.on('message', (raw) => {
     try {
@@ -166,25 +192,9 @@ wss.on('connection', (ws) => {
       }
     } catch (e) {}
   })
-  ws.on('close', () => wsClients.delete(ws))
+  ws.on('close', () => removeClient(ws))
   ws.send(JSON.stringify({ type: 'connected', message: '效园通 WebSocket 已连接' }))
 })
-
-/**
- * 向指定频道广播消息
- * @param {string} channel - 频道名（空字符串=全部）
- * @param {object} data - 消息数据
- */
-function broadcast(channel, data) {
-  const payload = JSON.stringify({ channel, data, timestamp: Date.now() })
-  for (const ws of wsClients) {
-    if (ws.readyState === WebSocket.OPEN) {
-      if (!ws._channel || !channel || ws._channel === channel) {
-        ws.send(payload)
-      }
-    }
-  }
-}
 
 // ==================== 启动（先初始化数据库，再监听端口）====================
 
@@ -196,9 +206,23 @@ async function start() {
 
     const server = http.createServer(app)
 
-    // WebSocket 升级
+    // WebSocket 升级（需携带有效 JWT：ws://host/ws?token=xxx）
     server.on('upgrade', (request, socket, head) => {
-      if (request.url === '/ws') {
+      if (request.url === '/ws' || request.url.startsWith('/ws?')) {
+        try {
+          const url = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
+          const token = url.searchParams.get('token');
+          if (!token) {
+            socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+            socket.destroy();
+            return;
+          }
+          jwt.verify(token, config.jwtSecret);
+        } catch (e) {
+          socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+          socket.destroy();
+          return;
+        }
         wss.handleUpgrade(request, socket, head, (ws) => {
           wss.emit('connection', ws, request)
         })
@@ -206,6 +230,16 @@ async function start() {
         socket.destroy()
       }
     })
+
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`[App] 端口 ${config.port} 已被占用，请更换 PORT 或关闭占用进程`);
+      } else {
+        console.error('[App] 服务器错误:', err.message);
+      }
+      closeDb();
+      process.exit(1);
+    });
 
     server.listen(config.port, '0.0.0.0', () => {
       console.log('\n════════════════════════════════════════');

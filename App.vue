@@ -1,6 +1,5 @@
 <script>
-import { useUserStore } from './store/pinia'
-import { useMascotStore } from './store/pinia'
+import { useUserStore, useMascotStore } from './store/pinia'
 
 export default {
   onLaunch: function() {

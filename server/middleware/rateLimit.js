@@ -11,7 +11,7 @@ setInterval(() => {
       attempts.delete(key);
     }
   }
-}, CLEANUP_INTERVAL);
+}, CLEANUP_INTERVAL).unref(); // unref：不阻止进程退出（脚本/测试中 require 本模块时能正常结束）
 
 /**
  * 简单的内存级频率限制中间件
@@ -23,7 +23,8 @@ function rateLimit(windowMs, maxAttempts) {
   maxAttempts = maxAttempts || config.rateLimit.maxAttempts;
 
   return (req, res, next) => {
-    const key = req.ip || req.connection.remoteAddress || 'unknown';
+    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    const key = ip + ':' + req.baseUrl + req.path;
     const now = Date.now();
     const record = attempts.get(key) || { count: 0, start: now };
 

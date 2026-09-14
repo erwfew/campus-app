@@ -1,8 +1,8 @@
 ﻿<template>
 	<view class="nav-page">
-		<!-- 鍦板浘鍖哄煙 -->
+		<!-- 地图区域 -->
 		<view class="map-wrapper">
-			<!-- 鐘舵€佹爮鍗犱綅 -->
+			<!-- 状态栏占位 -->
 			<cover-view class="nav-status-bar"></cover-view>
 			<map
 				class="campus-map"
@@ -22,66 +22,66 @@
 				ref="mapCtx"
 			></map>
 
-			<!-- 瀹氫綅鎸夐挳 -->
+			<!-- 定位按钮 -->
 			<cover-view class="map-btn my-location" @tap="moveToMyLocation" v-if="!isNavigating">
 				<cover-view class="btn-icon">馃搷</cover-view>
 			</cover-view>
 
-			<!-- 瀵艰埅鏃剁殑鎸囧崡閽堟寜閽?-->
+			<!-- 导航时的指南针按钮 -->
 			<cover-view class="map-btn compass-btn" @tap="resetNavHeading" v-if="isNavigating">
-				<cover-view class="btn-icon">猬?/cover-view>
+				<cover-view class="btn-icon">🧭</cover-view>
 			</cover-view>
 
-			<!-- 瀵艰埅鏃跺洖鍒拌嚜宸变綅缃寜閽?-->
+			<!-- 导航时回到自己位置按钮 -->
 			<cover-view class="map-btn nav-locate-btn" @tap="moveToMyLocation" v-if="isNavigating">
 				<cover-view class="btn-icon">馃搷</cover-view>
 			</cover-view>
 
-			<!-- 瀹氫綅鐘舵€佹彁绀?-->
+			<!-- 定位状态提示 -->
 			<view class="location-toast" v-if="locationLoading">
-				<text>姝ｅ湪鑾峰彇浣嶇疆...</text>
+				<text>正在获取位置...</text>
 			</view>
 		</view>
 
-		<!-- 瀵艰埅鐘舵€佹爮 -->
+		<!-- 导航状态栏 -->
 		<view class="nav-bar" v-if="isNavigating">
 			<view class="nav-bar-left">
-				<text class="nav-bar-dest">鍓嶅線 {{ endPointName }}</text>
+				<text class="nav-bar-dest">前往 {{ endPointName }}</text>
 				<text class="nav-bar-distance">
-					鍓╀綑绾?{{ routeDistance }} 绫?路 绾?{{ routeTime }} 鍒嗛挓
+					剩余约{{ routeDistance }}米 · {{ routeTime }}分钟
 				</text>
 			</view>
 			<view class="nav-bar-actions">
 				<view class="nav-bar-voice" @tap="toggleVoice">
-					<text>{{ voiceEnabled ? '馃攰' : '馃攪' }}</text>
+					<text>{{ voiceEnabled ? '🎤' : '🔊' }}</text>
 				</view>
 				<view class="nav-bar-stop" @tap="stopNavigation">
-					<text>缁撴潫瀵艰埅</text>
+					<text>结束导航</text>
 				</view>
 			</view>
 		</view>
 
-		<!-- 瀵艰埅搴曢儴鎸囧紩闈㈡澘 -->
+		<!-- 导航底部指引面板 -->
 		<view class="nav-bottom" v-if="isNavigating">
 			<view class="nav-direction">
 				<text class="nav-dir-icon">{{ navDirIcon }}</text>
 				<text class="nav-dir-text">{{ navDirText }}</text>
 			</view>
-			<!-- 鏈夎矾娈典俊鎭椂鏄剧ず涓嬩竴杞集鎻愮ず -->
+			<!-- 有路段信息时显示下一转弯提示 -->
 			<view class="nav-next-info" v-if="routeSteps.length > 0 && _nextAction">
-				<text class="nav-next-label">鍓嶆柟绾{ Math.round(_distToTurn) }}绫硔{ _nextAction }}</text>
+				<text class="nav-next-label">前方{{ Math.round(_distToTurn) }}米{{ _nextAction }}</text>
 				<text class="nav-next-detail" v-if="_nextInstruction">{{ _nextInstruction }}</text>
 			</view>
 			<view class="nav-next-info" v-else-if="directionHint">
-				<text class="nav-next-label">鏈漿{ directionHint }}鏂瑰悜</text>
-				<text class="nav-next-detail">鍓嶅線 {{ endPointName }}</text>
+				<text class="nav-next-label">{{ directionHint }}方向</text>
+				<text class="nav-next-detail">前往 {{ endPointName }}</text>
 			</view>
 		</view>
 
-		<!-- 蹇€熷畾浣?-->
+			<!-- 快速定位 -->
 		<view class="card" v-if="!isNavigating">
 			<view class="card-header">
-				<text class="card-title">蹇€熷畾浣?/text>
+				<text class="card-title">快速定位</text>
 				<text class="school-label" v-if="verifiedSchoolName">{{ verifiedSchoolName }}</text>
 			</view>
 			<view class="location-tags">
@@ -94,20 +94,20 @@
 			</view>
 		</view>
 
-		<!-- 璺嚎瑙勫垝 -->
+		<!-- 路线规划 -->
 		<view class="card" v-if="!isNavigating">
-			<text class="card-title">璺嚎瑙勫垝</text>
+			<text class="card-title">路线规划</text>
 			<view class="route-modes">
 				<text
 					class="route-mode"
 					:class="{ active: travelMode === 'walk' }"
 					@tap="switchMode('walk')"
-				>姝ヨ</text>
+				>步行</text>
 				<text
 					class="route-mode"
 					:class="{ active: travelMode === 'cycle' }"
 					@tap="switchMode('cycle')"
-				>楠戣</text>
+				>骑行</text>
 			</view>
 			<view class="route-card" @tap="selectStartPoint">
 				<view class="route-row">
@@ -115,7 +115,7 @@
 					<text class="route-text">{{ startPointName }}</text>
 				</view>
 				<view class="route-line-v"></view>
-				<!-- 閫旂粡鐐瑰垪琛?-->
+			<!-- 途经点列表 -->
 				<view
 					class="route-row waypoint-row"
 					v-for="(wp, wpIdx) in waypoints"
@@ -123,13 +123,13 @@
 				>
 					<view class="route-dot waypoint-dot"></view>
 					<text class="route-text" @tap.stop="selectWaypoint(wpIdx)">{{ wp.name }}</text>
-					<text class="waypoint-remove" @tap.stop="removeWaypoint(wpIdx)">鉁?/text>
+						<text class="waypoint-remove" @tap.stop="removeWaypoint(wpIdx)">✕</text>
 				</view>
 				<view class="route-line-v" v-if="waypoints.length > 0"></view>
-				<!-- 娣诲姞閫旂粡鐐规寜閽?-->
-				<view class="add-waypoint-btn" @tap.stop="selectWaypointTarget = -1; showPlacePicker = true; pickerTitle = '閫夋嫨閫旂粡鐐?; pickerTarget = 'waypoint'">
+			<!-- 添加途经点按钮 -->
+				<view class="add-waypoint-btn" @tap.stop="selectWaypointTarget = -1; showPlacePicker = true; pickerTitle = '选择途经点'; pickerTarget = 'waypoint'">
 					<text class="add-waypoint-icon">+</text>
-					<text class="add-waypoint-text">娣诲姞閫旂粡鐐?/text>
+				<text class="add-waypoint-text">添加途经点</text>
 				</view>
 				<view class="route-line-v"></view>
 				<view class="route-card" @tap.stop="selectEndPoint" style="background: transparent; padding: 0; margin: 0;">
@@ -141,15 +141,15 @@
 			</view>
 			<view class="route-result" v-if="routeDistance > 0">
 				<text class="route-result-text">
-					{{ travelMode === 'walk' ? '姝ヨ' : '楠戣' }} 绾?{{ routeTime }} 鍒嗛挓 路 {{ routeDistance }}绫?				</text>
-				<text class="route-source" v-if="routeFromAPI">璺嚎鏉ヨ嚜楂樺痉鍦板浘</text>
+					{{ travelMode === 'walk' ? '步行' : '骑行' }} {{ routeTime }} 分钟 · {{ routeDistance }} 米</text>
+				<text class="route-source" v-if="routeFromAPI">路线来自高德地图</text>
 			</view>
 			<view class="route-btn" v-if="endPoint" @tap="startNavigation">
-				<text class="route-btn-text">寮€濮嬪鑸?/text>
+				<text class="route-btn-text">开始导航</text>
 			</view>
 		</view>
 
-		<!-- 鍦扮偣璇︽儏寮圭獥 -->
+		<!-- 地点详情弹窗 -->
 		<view class="detail-mask" v-if="showDetail && !isNavigating" @tap="closeDetail">
 			<view class="detail-panel" @tap.stop>
 				<view class="detail-handle"></view>
@@ -163,29 +163,29 @@
 				</view>
 				<view class="detail-actions">
 					<view class="detail-btn secondary" @tap="setAsStart">
-						<text>璁句负璧风偣</text>
+						<text>设为起点</text>
 					</view>
 					<view class="detail-btn primary" @tap="setAsEnd">
-						<text>鍘昏繖閲?/text>
+				<text>去这里</text>
 					</view>
 				</view>
 			</view>
 		</view>
 
-		<!-- 鍦扮偣閫夋嫨寮圭獥 -->
+		<!-- 地点选择弹窗 -->
 		<view class="detail-mask" v-if="showPlacePicker && !isNavigating" @tap="showPlacePicker = false">
 			<view class="picker-panel" @tap.stop>
 				<view class="picker-handle"></view>
 				<text class="picker-title">{{ pickerTitle }}</text>
 				<scroll-view scroll-y class="picker-list">
-					<!-- "鎴戠殑浣嶇疆"閫夐」锛堜粎鍦ㄩ€夋嫨璧风偣鏃舵樉绀猴級 -->
+					<!-- "我的位置"选项（仅在选择起点时显示） -->
 					<view
 						class="picker-item"
 						v-if="pickerTarget === 'start' && hasRealLocation"
 						@tap="pickMyLocation"
 					>
 						<text class="picker-item-icon">馃搷</text>
-						<text class="picker-item-name">鎴戠殑浣嶇疆</text>
+						<text class="picker-item-name">我的位置</text>
 					</view>
 					<view
 						class="picker-item"
@@ -201,7 +201,7 @@
 		</view>
 	</view>
 
-  <!-- 鑷畾涔夊簳閮ㄥ鑸?-->
+	<!-- 自定义底部导航 -->
   <bottom-nav activeTab="/pages/navigation/index" />
 </template>
 
@@ -210,7 +210,7 @@ import BottomNav from '../../components/bottom-nav/bottom-nav.vue'
 import RoutePlanner from '../../components/navigation/route-planner.vue'
 import LocationDetail from '../../components/navigation/location-detail.vue'
 import PlacePicker from '../../components/navigation/place-picker.vue'
-import { TENCENT_MAP_KEY, AMAP_KEY } from '../../common/map-config.js'
+import httpRequest from '../../utils/request.js'
 import { getSchoolLocations, getDefaultLocations } from '../../common/school-locations.js'
 import { useUserStore } from '@/store/pinia'
 
@@ -218,7 +218,8 @@ export default {
   components: { BottomNav, RoutePlanner, LocationDetail, PlacePicker },
 	data() {
 		return {
-			// 鏂扮被鍨嬧啋宸叉湁marker鍥剧墖鐨勬槧灏?			markerIconMap: {
+			// 新类型→已有marker鍥剧墖鐨勬槧灏?
+			markerIconMap: {
 				teaching: 'teach',
 				canteen: 'food',
 				dormitory: 'dorm',
@@ -233,91 +234,98 @@ export default {
 			centerLng: 120.1290,
 			mapScale: 16,
 
-			// 鐪熷疄瀹氫綅
+			// 真实定位
 			myLatitude: null,
 			myLongitude: null,
 			locationLoading: false,
 			hasRealLocation: false,
 
-			// 宸茶璇佸鏍″悕绉?			verifiedSchoolName: '',
+			// 宸茶璇佸鏍″悕绉?
+			verifiedSchoolName: '',
 
-			// 鏍″洯寤虹瓚鏁版嵁锛堟ā鎷熷潗鏍囷級
+			// 校园建筑数据（模拟坐标）
 			campusLocations: [
-				{ id: 1, name: '鏁欏妤糀', latitude: 30.2580, longitude: 120.1280, type: 'teaching', typeName: '鏁欏妤?, openTime: '7:00 - 22:00', desc: '璁＄畻鏈哄闄€佹暟瀛﹀闄㈡墍鍦ㄥ湴' },
-				{ id: 2, name: '鏁欏妤糂', latitude: 30.2590, longitude: 120.1300, type: 'teaching', typeName: '鏁欏妤?, openTime: '7:00 - 22:00', desc: '澶栬瀛﹂櫌銆佺粡绠″闄㈡墍鍦ㄥ湴' },
-				{ id: 3, name: '鏁欏妤糃', latitude: 30.2565, longitude: 120.1310, type: 'teaching', typeName: '鏁欏妤?, openTime: '7:00 - 22:00', desc: '鏂囧闄€佹硶瀛﹂櫌鎵€鍦ㄥ湴' },
-				{ id: 4, name: '鍥句功棣?, latitude: 30.2570, longitude: 120.1290, type: 'library', typeName: '鍥句功棣?, openTime: '8:00 - 22:00', desc: '钘忎功120涓囧唽锛岃嚜涔犲24灏忔椂寮€鏀? },
-				{ id: 5, name: '绗竴椋熷爞', latitude: 30.2560, longitude: 120.1270, type: 'canteen', typeName: '椋熷爞', openTime: '6:30 - 21:00', desc: '涓€妤煎ぇ浼楅锛屼簩妤肩壒鑹插皬鍚? },
-				{ id: 6, name: '绗簩椋熷爞', latitude: 30.2585, longitude: 120.1265, type: 'canteen', typeName: '椋熷爞', openTime: '6:30 - 21:00', desc: '娓呯湡绐楀彛銆佽タ寮忓揩椁? },
-				{ id: 7, name: '瀹胯垗A鏍?, latitude: 30.2600, longitude: 120.1260, type: 'dormitory', typeName: '瀹胯垗', openTime: '鍏ㄥぉ', desc: '鐢风敓瀹胯垗' },
-				{ id: 8, name: '瀹胯垗B鏍?, latitude: 30.2605, longitude: 120.1275, type: 'dormitory', typeName: '瀹胯垗', openTime: '鍏ㄥぉ', desc: '濂崇敓瀹胯垗' },
-				{ id: 9, name: '瀹胯垗C鏍?, latitude: 30.2602, longitude: 120.1250, type: 'dormitory', typeName: '瀹胯垗', openTime: '鍏ㄥぉ', desc: '鐮旂┒鐢熷鑸? },
-				{ id: 10, name: '鎿嶅満', latitude: 30.2550, longitude: 120.1310, type: 'playground', typeName: '杩愬姩鍦哄湴', openTime: '6:00 - 22:00', desc: '400绫虫爣鍑嗚窇閬擄紝瓒崇悆鍦? },
-				{ id: 11, name: '浣撹偛棣?, latitude: 30.2540, longitude: 120.1300, type: 'sports', typeName: '浣撹偛棣?, openTime: '7:00 - 22:00', desc: '绡悆鍦恒€佺窘姣涚悆鍦恒€佹父娉抽' },
-				{ id: 12, name: '瀹為獙妤?, latitude: 30.2555, longitude: 120.1295, type: 'lab', typeName: '瀹為獙妤?, openTime: '8:00 - 21:00', desc: '鐗╃悊銆佸寲瀛︺€佺敓鐗╁疄楠屽' },
-				{ id: 13, name: '琛屾斂妤?, latitude: 30.2575, longitude: 120.1270, type: 'office', typeName: '琛屾斂妤?, openTime: '8:30 - 17:30', desc: '鏁欏姟澶勩€佸鐢熷銆佽储鍔″' },
-				{ id: 14, name: '澶у鐢熸椿鍔ㄤ腑蹇?, latitude: 30.2558, longitude: 120.1285, type: 'activity', typeName: '娲诲姩涓績', openTime: '8:00 - 22:00', desc: '绀惧洟娲诲姩銆佹枃鑹烘紨鍑? }
+				{ id: 1, name: '教学楼A', latitude: 30.2580, longitude: 120.1280, type: 'teaching', typeName: '教学楼', openTime: '7:00 - 22:00', desc: '计算机学院、数学学院所在地' },
+				{ id: 2, name: '教学楼B', latitude: 30.2590, longitude: 120.1300, type: 'teaching', typeName: '教学楼', openTime: '7:00 - 22:00', desc: '外语学院、经管学院所在地' },
+				{ id: 3, name: '教学楼C', latitude: 30.2565, longitude: 120.1310, type: 'teaching', typeName: '教学楼', openTime: '7:00 - 22:00', desc: '文学院、法学院所在地' },
+				{ id: 4, name: '图书馆', latitude: 30.2570, longitude: 120.1290, type: 'library', typeName: '图书馆', openTime: '8:00 - 22:00', desc: '藏书120万册，自习室24小时开放' },
+				{ id: 5, name: '第一食堂', latitude: 30.2560, longitude: 120.1270, type: 'canteen', typeName: '食堂', openTime: '6:30 - 21:00', desc: '一楼大众餐，二楼特色小炒' },
+				{ id: 6, name: '第二食堂', latitude: 30.2585, longitude: 120.1265, type: 'canteen', typeName: '食堂', openTime: '6:30 - 21:00', desc: '清淡窗口、西式快餐' },
+				{ id: 7, name: '宿舍A栋', latitude: 30.2600, longitude: 120.1260, type: 'dormitory', typeName: '宿舍', openTime: '全天', desc: '男生宿舍' },
+				{ id: 8, name: '宿舍B栋', latitude: 30.2605, longitude: 120.1275, type: 'dormitory', typeName: '宿舍', openTime: '全天', desc: '女生宿舍' },
+				{ id: 9, name: '宿舍C栋', latitude: 30.2602, longitude: 120.1250, type: 'dormitory', typeName: '宿舍', openTime: '全天', desc: '研究生宿舍' },
+				{ id: 10, name: '操场', latitude: 30.2550, longitude: 120.1310, type: 'playground', typeName: '运动场地', openTime: '6:00 - 22:00', desc: '400米标准跑道，足球场' },
+				{ id: 11, name: '体育馆', latitude: 30.2540, longitude: 120.1300, type: 'sports', typeName: '体育馆', openTime: '7:00 - 22:00', desc: '篮球场、羽毛球场、游泳馆' },
+				{ id: 12, name: '实验楼', latitude: 30.2555, longitude: 120.1295, type: 'lab', typeName: '实验楼', openTime: '8:00 - 21:00', desc: '物理、化学、生物实验室' },
+				{ id: 13, name: '行政楼', latitude: 30.2575, longitude: 120.1270, type: 'office', typeName: '行政楼', openTime: '8:30 - 17:30', desc: '教务处、学生处、财务处' },
+				{ id: 14, name: '大学生活动中心', latitude: 30.2558, longitude: 120.1285, type: 'activity', typeName: '活动中心', openTime: '8:00 - 22:00', desc: '社团活动、文艺演出' }
 			],
 
-			// 蹇€熷畾浣嶅垎绫?			locationTypes: [
-				{ name: '鏁欏妤?, type: 'teaching' },
-				{ name: '鍥句功棣?, type: 'library' },
-				{ name: '椋熷爞', type: 'canteen' },
-				{ name: '瀹胯垗', type: 'dormitory' },
-				{ name: '鎿嶅満', type: 'playground' },
-				{ name: '浣撹偛棣?, type: 'sports' }
+			// 快速定位分类
+			locationTypes: [
+				{ name: '教学楼', type: 'teaching' },
+				{ name: '图书馆', type: 'library' },
+				{ name: '食堂', type: 'canteen' },
+				{ name: '宿舍', type: 'dormitory' },
+				{ name: '操场', type: 'playground' },
+				{ name: '体育馆', type: 'sports' }
 			],
 
-			// 璺嚎瑙勫垝
+			// 路线规划
 			travelMode: 'walk',
 			startPoint: null,
-			startPointName: '褰撳墠浣嶇疆',
+			startPointName: '当前位置',
 			endPoint: null,
-			endPointName: '閫夋嫨鐩殑鍦?,
+			endPointName: '选择目的地',
 			waypoints: [],
 			polyline: [],
 			routeDistance: 0,
 			routeFromAPI: false,
-			routeSteps: [],       // 楂樺痉API杩斿洖鐨勮矾娈靛垎娈垫暟鎹?			currentStepIndex: 0,  // 褰撳墠鎵€鍦ㄨ矾娈电储寮?
-			// 璇煶瀵艰埅
+			routeSteps: [],       // 高德API杩斿洖鐨勮矾娈靛垎娈垫暟鎹?
+			currentStepIndex: 0,  // 褰撳墠鎵€鍦ㄨ矾娈电储寮?'
+			// 语音导航
 			voiceEnabled: true,
 			lastVoiceDir: '',
 			voiceCooldown: false,
 			_ttsEngine: null,
 			_ttsReady: false,
 
-			// 寮圭獥鎺у埗
+			// 弹窗控制
 			showDetail: false,
 			selectedPlace: {},
 			showPlacePicker: false,
 			pickerTitle: '',
 			pickerTarget: '',
 
-			// 鍦板浘灏哄锛堝姩鎬佽幏鍙栧睆骞曞搴︼級
+			// 地图尺寸（动态获取屏幕宽度）
 			mapWidth: 350,
 			mapHeight: 250,
 
-			// 鍦板浘涓婁笅鏂?			mapCtx: null,
+			// 鍦板浘涓婁笅鏂?
+			mapCtx: null,
 
-			// 鍐呯疆瀵艰埅鐘舵€?			isNavigating: false,
+			// 鍐呯疆瀵艰埅鐘舵€?
+			isNavigating: false,
 			navStartTime: null,
 			navTimer: null,
 
-			// 瀵艰埅鏈濆悜锛堟寚鍗楅拡锛?			userHeading: 0,
+			// 瀵艰埅鏈濆悜锛堟寚鍗楅拡锛?
+			userHeading: 0,
 			lastBearing: 0,
 			compassListening: false,
 
-			// 鍦板浘鏃嬭浆/鍊炬枩
+			// 地图旋转/倾斜
 			mapRotate: 0,
 			mapSkew: 0,
 
-			// 瀵艰埅鏂瑰悜鎸囧紩
-			navDirIcon: '猬?,
-			navDirText: '鐩磋'
+			// 导航方向指引
+			navDirIcon: '↑',
+			navDirText: '直行'
 		}
 	},
 	computed: {
-		// 鐢熸垚鍦板浘鏍囪鐐癸紙浣跨敤鍐呯疆鍥炬爣 + callout锛?		markers() {
+		// 生成地图标记点（使用内置图标 + callout锛?
+		markers() {
 			const list = this.campusLocations.map(place => {
 				return {
 					id: place.id,
@@ -339,7 +347,7 @@ export default {
 				}
 			})
 
-			// 濡傛灉鏈夌湡瀹炲畾浣嶏紝娣诲姞"鎴戠殑浣嶇疆"钃濊壊鏍囪
+			// 如果有真实定位，添加"我的位置"蓝色标记
 			if (this.hasRealLocation) {
 				list.push({
 					id: 999,
@@ -349,7 +357,7 @@ export default {
 					width: 36,
 					height: 36,
 					callout: {
-						content: '鎴戠殑浣嶇疆',
+						content: '我的位置',
 						color: '#4361ee',
 						fontSize: 12,
 						borderRadius: 6,
@@ -362,23 +370,24 @@ export default {
 
 			return list
 		},
-		// 棰勪及鏃堕棿
+		// 预估时间
 		routeTime() {
 			if (this.routeDistance <= 0) return 0
 			const speed = this.travelMode === 'walk' ? 80 : 250
 			return Math.ceil(this.routeDistance / speed)
 		},
-		// 鏂瑰悜鎻愮ず
+		// 方向提示
 		directionHint() {
 			if (!this.hasRealLocation || !this.endPoint) return ''
 			const dLat = this.endPoint.latitude - this.myLatitude
 			const dLng = this.endPoint.longitude - this.myLongitude
 			const angle = Math.atan2(dLng, dLat) * 180 / Math.PI
-			const dirs = ['鍖?, '涓滃寳', '涓?, '涓滃崡', '鍗?, '瑗垮崡', '瑗?, '瑗垮寳']
+			const dirs = ['北', '东北', '东', '东南', '南', '西南', '西', '西北']
 			const idx = Math.round(((angle + 360) % 360) / 45) % 8
 			return dirs[idx]
 		},
-		// 鐩湴鏂逛綅瑙?		targetBearing() {
+		// 鐩湴鏂逛綅瑙?
+		targetBearing() {
 			if (!this.hasRealLocation || !this.endPoint) return 0
 			const dLat = this.endPoint.latitude - this.myLatitude
 			const dLng = this.endPoint.longitude - this.myLongitude
@@ -386,20 +395,23 @@ export default {
 		}
 	},
 	onLoad() {
-		// 鍔ㄦ€佽幏鍙栧睆骞曞昂瀵革紝璁剧疆鍦板浘绮剧‘瀹藉害锛堣В鍐冲湴鍥惧彸渚х己澶遍棶棰橈級
+		// 动态获取屏幕尺寸，设置地图精确宽度（解决地图右侧缺失问题）
 		const sysInfo = uni.getSystemInfoSync()
 		this.mapWidth = sysInfo.windowWidth
 		this.mapHeight = Math.round(sysInfo.windowWidth * 0.65) + (sysInfo.statusBarHeight || 0)
-		// 鑾峰彇鍦板浘涓婁笅鏂?		this.mapCtx = uni.createMapContext('campusMap', this)
-		// 鍔犺浇瀛︽牎璁よ瘉鏁版嵁锛岃缃牎鍥缓绛?		this.loadSchoolData()
-		// 椤甸潰鍔犺浇鏃惰幏鍙栫湡瀹炰綅缃?		this.getMyLocation()
+		// 鑾峰彇鍦板浘涓婁笅鏂?
+		this.mapCtx = uni.createMapContext('campusMap', this)
+		// 鍔犺浇瀛︽牎璁よ瘉鏁版嵁锛岃缃牎鍥缓绛?
+		this.loadSchoolData()
+		// 椤甸潰鍔犺浇鏃惰幏鍙栫湡瀹炰綅缃?
+		this.getMyLocation()
 	},
 	onShow() {
-		// 浠庤璇侀〉闈㈣繑鍥炴椂閲嶆柊鍔犺浇瀛︽牎鏁版嵁
+		// 从认证页面返回时重新加载学校数据
 		this.loadSchoolData()
 	},
 	methods: {
-		// ==================== 瀛︽牎鏁版嵁鍔犺浇 ====================
+		// ==================== 学校数据加载 ====================
 		loadSchoolData() {
 			try {
 				const userStore = useUserStore()
@@ -415,7 +427,7 @@ export default {
 							this.centerLat = schoolData.center.lat
 							this.centerLng = schoolData.center.lng
 							uni.showToast({
-								title: '宸插姞杞姐€? + userStore.schoolName + '銆嶆牎鍥暟鎹?,
+								title: '已加载【' + userStore.schoolName + '】校园数据',
 								icon: 'none'
 							})
 							return
@@ -423,9 +435,9 @@ export default {
 					}
 				}
 			} catch (e) {
-				console.log('鍔犺浇瀛︽牎鏁版嵁澶辫触:', e)
+				console.log('加载学校数据失败:', e)
 			}
-			// 鏈璇佹垨鏈壘鍒板鏍℃暟鎹紝浣跨敤榛樿鏁版嵁
+			// 未认证或未找到学校数据，使用默认数据
 			this.verifiedSchoolName = ''
 			const defaultData = getDefaultLocations()
 			this.campusLocations = defaultData.locations
@@ -434,7 +446,7 @@ export default {
 			this.centerLng = defaultData.center.lng
 		},
 
-		// ==================== 鍔熻兘1: 鐪熷疄GPS瀹氫綅 ====================
+		// ==================== 功能1: 真实GPS定位 ====================
 		getMyLocation() {
 			this.locationLoading = true
 			uni.getLocation({
@@ -444,20 +456,21 @@ export default {
 					this.myLongitude = res.longitude
 					this.hasRealLocation = true
 					this.locationLoading = false
-					console.log('瀹氫綅鎴愬姛(gcj02):', this.myLatitude, this.myLongitude)
+					console.log('定位成功(gcj02):', this.myLatitude, this.myLongitude)
 				},
 				fail: (err) => {
-					console.log('瀹氫綅澶辫触:', JSON.stringify(err))
+					console.log('定位失败:', JSON.stringify(err))
 					this.locationLoading = false
 					uni.showToast({
-						title: '瀹氫綅澶辫触锛岃妫€鏌ユ潈闄愬拰GPS',
+						title: '定位失败，请检查权限和GPS',
 						icon: 'none'
 					})
 				}
 			})
 		},
 
-		// WGS84 杞?GCJ02 鍧愭爣绯?		wgs84ToGcj02(lat, lng) {
+		// WGS84 杞?GCJ02 鍧愭爣绯?
+		wgs84ToGcj02(lat, lng) {
 			const pi = 3.14159265358979324
 			const a = 6378245.0
 			const ee = 0.00669342162296594323
@@ -488,39 +501,42 @@ export default {
 			return ret
 		},
 
-		// 绉诲姩鍒版垜鐨勪綅缃?		moveToMyLocation() {
+		// 绉诲姩鍒版垜鐨勪綅缃?
+		moveToMyLocation() {
 			if (this.hasRealLocation) {
 				this.centerLat = this.myLatitude
 				this.centerLng = this.myLongitude
 				this.mapScale = 17
-				// 绉诲姩鍦板浘鍒版垜鐨勪綅缃?				this.mapCtx.moveToLocation({
+				// 绉诲姩鍦板浘鍒版垜鐨勪綅缃?
+				this.mapCtx.moveToLocation({
 					latitude: this.myLatitude,
 					longitude: this.myLongitude,
 					success: () => {
-						uni.showToast({ title: '宸插畾浣嶅埌褰撳墠浣嶇疆', icon: 'none' })
+						uni.showToast({ title: '已定位到当前位置', icon: 'none' })
 					}
 				})
 			} else {
-				// 娌℃湁鐪熷疄瀹氫綅鏃讹紝鍥炲埌鏍″洯涓績骞堕噸鏂板皾璇曡幏鍙?				this.mapScale = 16
-				uni.showToast({ title: '姝ｅ湪閲嶆柊鑾峰彇浣嶇疆...', icon: 'none' })
+				// 娌℃湁鐪熷疄瀹氫綅鏃讹紝鍥炲埌鏍″洯涓績骞堕噸鏂板皾璇曡幏鍙?
+				this.mapScale = 16
+				uni.showToast({ title: '正在重新获取位置...', icon: 'none' })
 				this.getMyLocation()
 			}
 		},
 
-		// 閫夋嫨"鎴戠殑浣嶇疆"浣滀负璧风偣
+		// 选择"我的位置"作为起点
 		pickMyLocation() {
 			if (!this.hasRealLocation) return
 			this.startPoint = {
 				latitude: this.myLatitude,
 				longitude: this.myLongitude,
-				name: '鎴戠殑浣嶇疆'
+				name: '我的位置'
 			}
-			this.startPointName = '鎴戠殑浣嶇疆'
+			this.startPointName = '我的位置'
 			this.showPlacePicker = false
 			this.calculateRoute()
 		},
 
-		// ==================== 鍔熻兘2: 鑵捐鍦板浘璺嚎瑙勫垝 ====================
+		// ==================== 功能2: 腾讯地图路线规划 ====================
 		async calculateRoute() {
 			if (!this.startPoint || !this.endPoint) {
 				this.polyline = []
@@ -534,13 +550,11 @@ export default {
 			const endLat = this.endPoint.latitude
 			const endLng = this.endPoint.longitude
 
-			// 浼樺厛灏濊瘯楂樺痉鍦板浘 API锛屽啀灏濊瘯鑵捐鍦板浘 API锛屾渶鍚庝娇鐢ㄦ湰鍦版ā鎷?			let apiSuccess = await this.fetchAmapRoute(startLat, startLng, endLat, endLng)
-			if (!apiSuccess) {
-				apiSuccess = await this.fetchTencentRoute(startLat, startLng, endLat, endLng)
-			}
-
-			if (!apiSuccess || !this.routeFromAPI) {
-				// API 澶辫触鎴栨湭杩斿洖鏈夋晥璺嚎鏃朵娇鐢ㄦ湰鍦版ā鎷?				this.routeFromAPI = false
+			// 优先尝试高德地图 API，再尝试腾讯地图 API锛屾渶鍚庝娇鐢ㄦ湰鍦版ā鎷?
+			let apiSuccess = await this.fetchAmapRoute(startLat, startLng, endLat, endLng)
+						if (!apiSuccess || !this.routeFromAPI) {
+				// API 澶辫触鎴栨湭杩斿洖鏈夋晥璺嚎鏃朵娇鐢ㄦ湰鍦版ā鎷?
+				this.routeFromAPI = false
 				this.routeDistance = this.calcDistance(startLat, startLng, endLat, endLng)
 				const points = this.generateRoutePoints(startLat, startLng, endLat, endLng)
 				const color = this.travelMode === 'walk' ? '#4361ee' : '#ff9800'
@@ -551,84 +565,34 @@ export default {
 				]
 				this.fitRouteView(points)
 			} else if (this.polyline.length > 0 && this.polyline[0].points) {
-				// API 鎴愬姛鏃朵篃璋冩暣瑙嗗浘
+				// API 成功时也调整视图
 				this.fitRouteView(this.polyline[0].points)
 			}
 		},
 
-		// 澶勭悊鑵捐鍦板浘 API 鍝嶅簲锛堢粺涓€瑙ｆ瀽閫昏緫锛?		_handleTencentRouteResponse(res, startLat, startLng, endLat, endLng) {
-			if (res && res.status === 0 && res.result) {
-				const routes = res.result.routes
-				if (routes && routes.length > 0) {
-					const route = routes[0]
-					const points = []
-					const polylines = []
 
-					if (route.steps && route.steps.length > 0) {
-						route.steps.forEach((step) => {
-							if (step.polyline) {
-								polylines.push(step.polyline)
-							}
-						})
-					}
-					if (polylines.length === 0 && route.polyline) {
-						polylines.push(route.polyline)
-					}
 
-					polylines.forEach(poly => {
-						const decoded = this.parsePolyline(poly)
-						decoded.forEach(p => {
-							points.push({ latitude: p.lat, longitude: p.lng })
-						})
-					})
-
-					if (points.length > 0) {
-						// 楠岃瘉璺嚎缁堢偣鏄惁鎺ヨ繎鐩爣鐐?						const lastPt = points[points.length - 1]
-						const endpointDist = this.calcDistance(lastPt.latitude, lastPt.longitude, endLat, endLng)
-						if (endpointDist > 500) {
-							console.warn('API璺嚎缁堢偣杩滅鐩爣锛? + Math.round(endpointDist) + '绫筹級锛屼娇鐢ㄦ湰鍦拌矾绾?)
-							return false
-						}
-						const color = this.travelMode === 'walk' ? '#4361ee' : '#ff9800'
-						const colorLight = this.travelMode === 'walk' ? 'rgba(67,97,238,0.25)' : 'rgba(255,152,0,0.25)'
-						this.polyline = [
-							{ points: points, color: colorLight, width: 8, arrowLine: false },
-							{ points: points, color: color, width: 3, arrowLine: true }
-						]
-						this.routeDistance = route.distance || this.calcDistance(startLat, startLng, endLat, endLng)
-						this.routeFromAPI = true
-						this.fitRouteView(points)
-						return true
-					} else {
-						// polyline 瑙ｆ瀽鍚庢棤鏈夋晥鐐?					}
-				}
-			}
-			return false
-		},
-
-		// 璋冪敤楂樺痉鍦板浘姝ヨ璺嚎瑙勫垝 API锛堜紭鍏堜娇鐢級
+		// 调用高德地图步行路线规划 API（优先使用）
 		fetchAmapRoute(startLat, startLng, endLat, endLng) {
 			return new Promise((resolve) => {
-				if (!AMAP_KEY) {
-					resolve(false)
-					return
-				}
-				// 楂樺痉 API 鍧愭爣绯讳负 gcj02锛屼笌鎴戜滑鐨勫潗鏍囦竴鑷?				let url = `https://restapi.amap.com/v3/direction/walking?origin=${startLng},${startLat}&destination=${endLng},${endLat}&key=${AMAP_KEY}&extensions=all&strategy=2`
-				// 娣诲姞閫旂粡鐐癸紙楂樺痉鏍煎紡锛氱粡搴?绾害;缁忓害,绾害锛?				if (this.waypoints.length > 0) {
+				// 高德 API 坐标系为 gcj02锛屼笌鎴戜滑鐨勫潗鏍囦竴鑷?
+				let url = `/api/map/walking?origin=${startLng},${startLat}&destination=${endLng},${endLat}`
+				// 娣诲姞閫旂粡鐐癸紙楂樺痉鏍煎紡锛氱粡搴?纬度;经度,绾害锛?
+				if (this.waypoints.length > 0) {
 					const wpStr = this.waypoints.map(wp => `${wp.longitude},${wp.latitude}`).join('|')
 					url += `&waypoints=${encodeURIComponent(wpStr)}`
 				}
 
-				uni.request({
+				httpRequest({
 					url: url,
-					method: 'GET',
-					success: (res) => {
+					method: 'GET'
+				}).then((resData) => {
 						try {
-							const data = res.data
+							const data = resData
 							if (data.status === '1' && data.route && data.route.paths && data.route.paths.length > 0) {
 								const path = data.route.paths[0]
 								const points = []
-								// 淇濆瓨璺鍒嗘鏁版嵁鐢ㄤ簬瀵艰埅鎸囧紩
+								// 保存路段分段数据用于导航指引
 								const steps = []
 								if (path.steps) {
 									path.steps.forEach(step => {
@@ -652,7 +616,7 @@ export default {
 								this.routeSteps = steps
 								this.currentStepIndex = 0
 								if (points.length > 0) {
-									// 楠岃瘉缁堢偣
+									// 验证终点
 									const lastPt = points[points.length - 1]
 									const endpointDist = this.calcDistance(lastPt.latitude, lastPt.longitude, endLat, endLng)
 									if (endpointDist > 500) {
@@ -673,158 +637,32 @@ export default {
 								}
 							}
 						} catch (e) {
-							console.log('楂樺痉API瑙ｆ瀽澶辫触:', e)
+							console.log('高德API解析失败:', e)
 						}
 						resolve(false)
-					},
-					fail: () => {
+					}).catch(() => {
 						resolve(false)
-					}
-				})
+					})
 			})
 		},
 
-		// 璋冪敤鑵捐鍦板浘璺嚎瑙勫垝 API锛堢背绾х簿搴︼級
-		// H5 骞冲彴浣跨敤 JSONP 閬垮厤 CORS锛孉pp/灏忕▼搴忎娇鐢?uni.request
-		fetchTencentRoute(startLat, startLng, endLat, endLng) {
-			return new Promise((resolve) => {
-				if (!TENCENT_MAP_KEY || TENCENT_MAP_KEY === 'YOUR_TENCENT_MAP_KEY') {
-					console.log('鏈厤缃吘璁湴鍥続PI Key锛屼娇鐢ㄦ湰鍦版ā鎷熻矾绾?)
-					resolve(false)
-					return
-				}
 
-				// 浼樺厛浣跨敤椹捐溅 API 鑾峰彇璺嚎锛坧olyline 鏁版嵁鏇村彲闈狅級锛屾琛?楠戣鍏辩敤
-				const baseUrl = `https://apis.map.qq.com/ws/direction/v1/driving/?from=${startLat},${startLng}&to=${endLat},${endLng}&key=${TENCENT_MAP_KEY}&output=json&get_polyline=1`
-				const sysInfo = uni.getSystemInfoSync()
-				const isH5 = sysInfo.platform === 'h5'
 
-				if (isH5 && typeof document !== 'undefined') {
-					// H5 骞冲彴锛氫娇鐢?JSONP 閬垮厤 CORS
-					const cbName = '_tencentCb_' + Date.now()
-					const url = baseUrl + '&callback=' + cbName
-
-					const script = document.createElement('script')
-					script.type = 'text/javascript'
-					script.charset = 'utf-8'
-
-					const timer = setTimeout(() => {
-						cleanup()
-						resolve(false)
-					}, 8000)
-
-					const cleanup = () => {
-						clearTimeout(timer)
-						delete window[cbName]
-						if (script.parentNode) script.parentNode.removeChild(script)
-					}
-
-					window[cbName] = (res) => {
-						const ok = this._handleTencentRouteResponse(res, startLat, startLng, endLat, endLng)
-						cleanup()
-						resolve(ok)
-					}
-
-					script.onerror = () => {
-						cleanup()
-						resolve(false)
-					}
-
-					script.src = url
-					document.head.appendChild(script)
-				} else {
-					// App / 灏忕▼搴忓钩鍙帮細鐩存帴浣跨敤 uni.request
-					const url = baseUrl
-					uni.request({
-						url: url,
-						method: 'GET',
-						success: (res) => {
-							const ok = this._handleTencentRouteResponse(res.data || {}, startLat, startLng, endLat, endLng)
-							resolve(ok)
-						},
-						fail: () => {
-							resolve(false)
-						}
-					})
-				}
-			})
-		},
-
-		// 缁熶竴瑙ｆ瀽 polyline锛堟敮鎸佸绉嶆牸寮忥級
-		parsePolyline(poly) {
-			if (!poly) return []
-			// 鏍煎紡1锛氭暟缁?			if (Array.isArray(poly)) {
-				// 瀛愭牸寮?a锛氬璞℃暟缁?[{lat, lng}, ...] 鎴?[{latitude, longitude}, ...]
-				if (poly.length > 0 && typeof poly[0] === 'object') {
-					return poly.map(p => ({
-						lat: p.lat || p.latitude,
-						lng: p.lng || p.longitude
-					}))
-				}
-				// 瀛愭牸寮?b锛氬樊鍒嗙紪鐮佺殑鏁板瓧鏁扮粍 [startLat, startLng, dLat1, dLng1, ...]
-				if (poly.length >= 4 && typeof poly[0] === 'number') {
-					const points = []
-					let lat = poly[0]
-					let lng = poly[1]
-					points.push({ lat, lng })
-					for (let i = 2; i < poly.length - 1; i += 2) {
-						lat += poly[i] / 100000
-						lng += poly[i + 1] / 100000
-						points.push({ lat, lng })
-					}
-					return points
-				}
-				// 瀛愭牸寮?c锛氬瓧绗︿覆鏁扮粍 ["lat,lng;lat,lng", ...]
-				if (poly.length > 0 && typeof poly[0] === 'string') {
-					const points = []
-					poly.forEach(str => {
-						const parsed = this.parsePolyline(str)
-						points.push(...parsed)
-					})
-					return points
-				}
-				return []
-			}
-			// 鏍煎紡2锛氬瓧绗︿覆 鈥?鍒嗗彿鍒嗛殧鐨勫潗鏍囧 "lat,lng;lat,lng;..."
-			if (typeof poly === 'string') {
-				// 鍘婚櫎棣栧熬绌虹櫧
-				const trimmed = poly.trim()
-				if (trimmed.length === 0) return []
-				// 妫€鏌ユ槸鍚﹀寘鍚€楀彿锛堝潗鏍囧垎闅旂锛?				if (trimmed.includes(',')) {
-					const points = []
-					const pairs = trimmed.split(';')
-					pairs.forEach(pair => {
-						const parts = pair.split(',')
-						if (parts.length >= 2) {
-							const lat = parseFloat(parts[0])
-							const lng = parseFloat(parts[1])
-							if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-								points.push({ lat, lng })
-							}
-						}
-					})
-					if (points.length > 0) {
-						return points
-					}
-				}
-				// Google Polyline 缂栫爜瀛楃涓?				return this.decodeGooglePolyline(trimmed)
-			}
-			return []
-		},
-
-		// 瑙ｆ瀽楂樺痉鍦板浘 polyline锛堟牸寮忥細缁忓害,绾害;缁忓害,绾害;...锛?		parseAmapPolyline(poly) {
+		// 解析高德地图 polyline（格式：经度,纬度;经度,纬度;...锛?
+		parseAmapPolyline(poly) {
 			if (!poly) return []
 			if (typeof poly === 'string') {
 				const trimmed = poly.trim()
 				if (trimmed.length === 0) return []
 				const points = []
-				// 楂樺痉 polyline 鍙兘鐢?";" 鎴?"|" 鍒嗛殧澶氫釜娈?				const segments = trimmed.split('|')
+				// 高德 polyline 鍙兘鐢?";" 鎴?"|" 鍒嗛殧澶氫釜娈?
+				const segments = trimmed.split('|')
 				segments.forEach(seg => {
 					const pairs = seg.split(';')
 					pairs.forEach(pair => {
 						const parts = pair.split(',')
 						if (parts.length >= 2) {
-							// 楂樺痉鏍煎紡锛氱粡搴﹀湪鍓嶏紝绾害鍦ㄥ悗
+							// 高德格式：经度在前，纬度在后
 							const lng = parseFloat(parts[0])
 							const lat = parseFloat(parts[1])
 							if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
@@ -835,11 +673,11 @@ export default {
 				})
 				return points
 			}
-			// 濡傛灉鏄暟缁勶紝鎸夐€氱敤鏍煎紡瑙ｆ瀽
+			// 如果是数组，按通用格式解析
 			return this.parsePolyline(poly)
 		},
 
-		// 瑙ｇ爜 Google Polyline Algorithm 缂栫爜
+		// 解码 Google Polyline Algorithm 编码
 		decodeGooglePolyline(encoded) {
 			const points = []
 			let index = 0
@@ -874,21 +712,25 @@ export default {
 			return points
 		},
 
-		// 鍒囨崲鍑鸿鏂瑰紡鏃堕噸鏂拌绠楄矾绾?		switchMode(mode) {
+		// 鍒囨崲鍑鸿鏂瑰紡鏃堕噸鏂拌绠楄矾绾?
+		switchMode(mode) {
 			this.travelMode = mode
 			if (this.startPoint && this.endPoint) {
 				this.calculateRoute()
 			}
 		},
 
-		// ==================== 鍔熻兘3: 鏍囪鍥炬爣鐢熸垚 ====================
-		// 鐢熸垚鏍囪鍥炬爣锛堣繍琛屾椂 canvas 鐢熸垚锛屾棤闇€澶栭儴 PNG 鏂囦欢锛?		generateMarkerIcons() {
-			// uni-app 鐨?map 缁勪欢闇€瑕?iconPath 鎸囧悜鏈夋晥鐨勫浘鐗囪矾寰?			// 鍦?App 绔紝鎴戜滑浣跨敤 plus.io 鍐欏叆鏈湴鏂囦欢
-			// 鍦?H5 绔紝浣跨敤 canvas 鐢熸垚 data URL
-			// 杩欓噷鎻愪緵涓€涓檷绾ф柟妗堬細濡傛灉 PNG 鏂囦欢涓嶅瓨鍦紝map 缁勪欢浼氫娇鐢ㄩ粯璁ょ孩鑹插浘鏍?			// 寤鸿鍦ㄩ」鐩瀯寤烘椂杩愯 static/gen_markers.py 鐢熸垚鍥炬爣鏂囦欢
+		// ==================== 功能3: 标记图标生成 ====================
+		// 生成标记图标（运行时 canvas 生成，无需外部 PNG 鏂囦欢锛?
+		generateMarkerIcons() {
+			// uni-app 鐨?map 缁勪欢闇€瑕?iconPath 鎸囧悜鏈夋晥鐨勫浘鐗囪矾寰?
+			// 鍦?App 端，我们使用 plus.io 写入本地文件
+			// 鍦?H5 端，使用 canvas 生成 data URL
+			// 这里提供一个降级方案：如果 PNG 文件不存在，map 缁勪欢浼氫娇鐢ㄩ粯璁ょ孩鑹插浘鏍?
+			// 建议在项目构建时运行 static/gen_markers.py 生成图标文件
 		},
 
-		// ==================== 鍘熸湁鍔熻兘 ====================
+		// ==================== 原有功能 ====================
 		onMarkerTap(e) {
 			const markerId = e.detail.markerId
 			const place = this.campusLocations.find(p => p.id === markerId)
@@ -932,13 +774,13 @@ export default {
 		},
 
 		selectStartPoint() {
-			this.pickerTitle = '閫夋嫨璧风偣'
+			this.pickerTitle = '选择起点'
 			this.pickerTarget = 'start'
 			this.showPlacePicker = true
 		},
 
 		selectEndPoint() {
-			this.pickerTitle = '閫夋嫨鐩殑鍦?
+			this.pickerTitle = '选择目的地'
 			this.pickerTarget = 'end'
 			this.showPlacePicker = true
 		},
@@ -959,7 +801,7 @@ export default {
 
 		selectWaypoint(idx) {
 			this.selectWaypointTarget = idx
-			this.pickerTitle = '閫夋嫨閫旂粡鐐?
+			this.pickerTitle = '选择途经点'
 			this.pickerTarget = 'waypoint'
 			this.showPlacePicker = true
 		},
@@ -969,7 +811,7 @@ export default {
 			this.calculateRoute()
 		},
 
-		// 鏈湴妯℃嫙璺嚎锛堢粫寮€寤虹瓚锛屾ā鎷熺湡瀹為亾璺級
+		// 本地模拟路线（绕开建筑，模拟真实道路）
 		generateRoutePoints(startLat, startLng, endLat, endLng) {
 			const dLat = endLat - startLat
 			const dLng = endLng - startLng
@@ -979,24 +821,29 @@ export default {
 				return [{ latitude: startLat, longitude: startLng }, { latitude: endLat, longitude: endLng }]
 			}
 
-			// 纭畾鎬т吉闅忔満锛堝潗鏍囦笉鍙樺垯璺嚎涓嶅彉锛?			const hash = Math.sin(startLat * 127.1 + startLng * 311.7 + endLat * 74.7 + endLng * 157.3) * 43758.5453
+			// 纭畾鎬т吉闅忔満锛堝潗鏍囦笉鍙樺垯璺嚎涓嶅彉锛?
+			const hash = Math.sin(startLat * 127.1 + startLng * 311.7 + endLat * 74.7 + endLng * 157.3) * 43758.5453
 			const seed = hash - Math.floor(hash)
 
-			// 鐢熸垚鍒濆骞虫粦鏇茬嚎锛堜粠璧风偣鍒扮粓鐐圭殑鑷劧寮х嚎锛?			const numCtrlPts = 5
+			// 鐢熸垚鍒濆骞虫粦鏇茬嚎锛堜粠璧风偣鍒扮粓鐐圭殑鑷劧寮х嚎锛?
+			const numCtrlPts = 5
 			const ctrlPts = []
-			// 寮у害闅忚窛绂昏嚜閫傚簲锛氱煭璺濈灏忓姬搴︼紝闀胯窛绂婚€傚綋澶у姬搴?			const maxArcOffset = Math.min(totalDist * 0.12, 0.00025)
+			// 寮у害闅忚窛绂昏嚜閫傚簲锛氱煭璺濈灏忓姬搴︼紝闀胯窛绂婚€傚綋澶у姬搴?
+			const maxArcOffset = Math.min(totalDist * 0.12, 0.00025)
 			for (let i = 0; i < numCtrlPts; i++) {
 				const t = i / (numCtrlPts - 1)
 				let lat = startLat + dLat * t
 				let lng = startLng + dLng * t
-				// 娣诲姞鍨傜洿鏂瑰悜鐨勫姬搴﹀亸绉?				const perpMag = Math.sin(t * Math.PI) * maxArcOffset
+				// 娣诲姞鍨傜洿鏂瑰悜鐨勫姬搴﹀亸绉?
+				const perpMag = Math.sin(t * Math.PI) * maxArcOffset
 				const side = (seed > 0.5 ? 1 : -1)
 				lat += (-dLng / totalDist) * perpMag * side
 				lng += (dLat / totalDist) * perpMag * side
 				ctrlPts.push({ lat, lng })
 			}
 
-			// 鐢?Catmull-Rom 鏍锋潯鐢熸垚鍒濆璺緞鐐?			const rawPts = []
+			// 鐢?Catmull-Rom 鏍锋潯鐢熸垚鍒濆璺緞鐐?
+			const rawPts = []
 			for (let seg = 0; seg < ctrlPts.length - 1; seg++) {
 				const p0 = ctrlPts[Math.max(0, seg - 1)]
 				const p1 = ctrlPts[seg]
@@ -1014,7 +861,9 @@ export default {
 			}
 			rawPts.push({ lat: endLat, lng: endLng })
 
-			// 寤虹瓚鐗╅伩璁╋細灏嗙┛杩囧缓绛戠殑璺緞鐐规帹鍒板缓绛戝渚?			const buildingSafeRadius = 0.00018  // 绾?20 绫冲畨鍏ㄨ窛绂?			const pushDistance = 0.00022  // 鎺ㄥ紑璺濈绾?25 绫?
+			// 寤虹瓚鐗╅伩璁╋細灏嗙┛杩囧缓绛戠殑璺緞鐐规帹鍒板缓绛戝渚?
+			const buildingSafeRadius = 0.00018  // 绾?20 绫冲畨鍏ㄨ窛绂?'
+			const pushDistance = 0.00022  // 鎺ㄥ紑璺濈绾?25 绫?'
 			for (let iter = 0; iter < 3; iter++) {
 				for (let i = 1; i < rawPts.length - 1; i++) {
 					let repX = 0, repY = 0
@@ -1034,14 +883,15 @@ export default {
 						rawPts[i].lng += (repY / repMag) * pushDistance
 					}
 				}
-				// 姣忔鎺ㄥ畬鍚庣◢寰钩婊戯紝闃叉璺緞閿娇
+				// 每次推完后稍微平滑，防止路径锯齿
 				for (let i = 1; i < rawPts.length - 1; i++) {
 					rawPts[i].lat = rawPts[i].lat * 0.7 + (rawPts[i - 1].lat + rawPts[i + 1].lat) * 0.15
 					rawPts[i].lng = rawPts[i].lng * 0.7 + (rawPts[i - 1].lng + rawPts[i + 1].lng) * 0.15
 				}
 			}
 
-			// 鍥哄畾璧风偣鍜岀粓鐐?			rawPts[0] = { lat: startLat, lng: startLng }
+			// 鍥哄畾璧风偣鍜岀粓鐐?
+			rawPts[0] = { lat: startLat, lng: startLng }
 			rawPts[rawPts.length - 1] = { lat: endLat, lng: endLng }
 
 			return rawPts.map(p => ({ latitude: p.lat, longitude: p.lng }))
@@ -1070,7 +920,7 @@ export default {
 			})
 			this.centerLat = (minLat + maxLat) / 2
 			this.centerLng = (minLng + maxLng) / 2
-			// 鏍规嵁璺ㄥ害璁＄畻鍚堥€傜殑缂╂斁绾у埆
+			// 根据跨度计算合适的缩放级别
 			const latSpan = maxLat - minLat
 			const lngSpan = maxLng - minLng
 			const maxSpan = Math.max(latSpan, lngSpan)
@@ -1081,7 +931,7 @@ export default {
 
 		async startNavigation() {
 			if (!this.endPoint) return
-			// 纭畾璧风偣
+			// 确定起点
 			let startLat, startLng
 			if (this.hasRealLocation) {
 				startLat = this.myLatitude
@@ -1094,34 +944,33 @@ export default {
 				startLng = this.centerLng
 			}
 
-			// 浼樺厛灏濊瘯鑵捐鍦板浘 API 鑾峰彇绫崇骇绮惧害璺嚎
+			// 优先尝试腾讯地图 API 获取米级精度路线
 			let apiSuccess = await this.fetchAmapRoute(startLat, startLng, this.endPoint.latitude, this.endPoint.longitude)
-			if (!apiSuccess) {
-				apiSuccess = await this.fetchTencentRoute(startLat, startLng, this.endPoint.latitude, this.endPoint.longitude)
-			}
-
+			
 			if (!apiSuccess || !this.routeFromAPI) {
-				// API 澶辫触鏃朵娇鐢ㄦ湰鍦版ā鎷熻矾绾?				const points = this.generateRoutePoints(startLat, startLng, this.endPoint.latitude, this.endPoint.longitude)
+				// API 澶辫触鏃朵娇鐢ㄦ湰鍦版ā鎷熻矾绾?
+				const points = this.generateRoutePoints(startLat, startLng, this.endPoint.latitude, this.endPoint.longitude)
 				this.polyline = [
 					{ points: points, color: 'rgba(67,97,238,0.25)', width: 8, arrowLine: false },
 					{ points: points, color: '#4361ee', width: 3, arrowLine: true }
 				]
 			}
-			// 瀵艰埅妯″紡涓嬶紝鍦板浘浠ヨ捣鐐癸紙鐢ㄦ埛浣嶇疆锛変负涓績
+			// 导航模式下，地图以起点（用户位置）为中心
 			this.centerLat = startLat
 			this.centerLng = startLng
-			// 鏍规嵁璺嚎璺濈璁剧疆鍚堥€傜殑缂╂斁绾у埆
+			// 根据路线距离设置合适的缩放级别
 			const distToDest = this.calcDistance(startLat, startLng, this.endPoint.latitude, this.endPoint.longitude)
 			if (distToDest > 3000) this.mapScale = 14
 			else if (distToDest > 1000) this.mapScale = 15
 			else if (distToDest > 500) this.mapScale = 16
 			else if (distToDest > 200) this.mapScale = 17
 			else this.mapScale = 18
-			// 璁＄畻鍒濆璺濈
+			// 计算初始距离
 			if (this.hasRealLocation) {
 				this.routeDistance = this.calcDistance(startLat, startLng, this.endPoint.latitude, this.endPoint.longitude)
 			}
-			// 寮€鍚唴缃鑸ā寮?			this.isNavigating = true
+			// 寮€鍚唴缃鑸ā寮?
+			this.isNavigating = true
 			this.navStartTime = Date.now()
 			this.lastVoiceDir = ''
 			this.currentStepIndex = 0
@@ -1129,21 +978,22 @@ export default {
 			this._nextAction = ''
 			this._nextInstruction = ''
 			this._spokenSteps = ''
-			// 璁剧疆鍦板浘鍊炬枩鏁堟灉锛堟ā鎷?D瀵艰埅瑙嗚锛?			this.mapSkew = 40
-			// 鏇存柊瀵艰埅鎸囧紩
+			// 璁剧疆鍦板浘鍊炬枩鏁堟灉锛堟ā鎷?D瀵艰埅瑙嗚锛?
+			this.mapSkew = 40
+			// 更新导航指引
 			this.updateNavDirection()
-			// 寤惰繜寮€鍚寚鍗楅拡锛屽厛璁╃敤鎴风湅鍒版纭殑璺嚎鏂瑰悜
+			// 延迟开启指南针，先让用户看到正确的路线方向
 			setTimeout(() => {
 				this.startCompass()
 			}, 1500)
 			this.navTimer = setInterval(async () => {
 				if (this.hasRealLocation && this.endPoint) {
-					// 瀹炴椂璁＄畻鍓╀綑璺濈
+					// 实时计算剩余距离
 					this.routeDistance = this.calcDistance(
 						this.myLatitude, this.myLongitude,
 						this.endPoint.latitude, this.endPoint.longitude
 					)
-					// 闈?API 璺嚎鏃讹紝閲嶆柊鐢熸垚鏈湴妯℃嫙璺嚎
+					// 闈?API 路线时，重新生成本地模拟路线
 					if (!this.routeFromAPI) {
 						const newPoints = this.generateRoutePoints(this.myLatitude, this.myLongitude, this.endPoint.latitude, this.endPoint.longitude)
 						this.polyline = [
@@ -1151,22 +1001,25 @@ export default {
 							{ points: newPoints, color: '#4361ee', width: 3, arrowLine: true }
 						]
 					}
-					// 绉诲姩鍦板浘鍒板綋鍓嶄綅缃?					this.centerLat = this.myLatitude
+					// 绉诲姩鍦板浘鍒板綋鍓嶄綅缃?
+					this.centerLat = this.myLatitude
 					this.centerLng = this.myLongitude
 					this.mapScale = 17
-					// 鏇存柊瀵艰埅鏂瑰悜鎸囧紩
+					// 更新导航方向指引
 					this.updateNavDirection()
-					// 璺熻釜褰撳墠璺
+					// 跟踪当前路段
 					this.updateCurrentStep()
-					// 鍒拌揪鐩殑鍦帮紙50绫冲唴锛?					if (this.routeDistance < 50) {
+					// 到达目的地（50绫冲唴锛?
+					if (this.routeDistance < 50) {
 						this.stopNavigation()
-						this.speak('宸插埌杈剧洰鐨勫湴')
-						uni.showToast({ title: '宸插埌杈剧洰鐨勫湴锛?, icon: 'success' })
+						this.speak('已到达目的地')
+						uni.showToast({ title: '已到达目的地！', icon: 'success' })
 					}
 				}
 			}, 3000)
-			uni.showToast({ title: '瀵艰埅宸插紑濮?, icon: 'none' })
-			// 璇煶鎾姤寮€濮嬪鑸?			this.speak(`瀵艰埅寮€濮嬶紝鍓嶆柟绾?{Math.round(this.routeDistance)}绫冲埌杈?{this.endPointName}`)
+			uni.showToast({ title: '导航已开始', icon: 'none' })
+			// 璇煶鎾姤寮€濮嬪鑸?
+			this.speak(`导航开始，前方${Math.round(this.routeDistance)}米到达${this.endPointName}`)
 		},
 
 		stopNavigation() {
@@ -1175,26 +1028,27 @@ export default {
 			this.routeSteps = []
 			this.currentStepIndex = 0
 			this.polyline = []
-			// 鎭㈠鍦板浘瑙嗚
+			// 恢复地图视角
 			this.mapSkew = 0
 			this.mapRotate = 0
-			// 鍋滄鎸囧崡閽?			this.stopCompass()
+			// 鍋滄鎸囧崡閽?
+			this.stopCompass()
 			if (this.navTimer) {
 				clearInterval(this.navTimer)
 				this.navTimer = null
 			}
 		},
 
-		// ==================== 鎸囧崡閽堜笌瀵艰埅鏂瑰悜 ====================
+		// ==================== 指南针与导航方向 ====================
 		startCompass() {
 			if (this.compassListening) return
 			this.compassListening = true
 			uni.onCompassChange((res) => {
 				if (!this.isNavigating) return
 				this.userHeading = res.direction
-				// 鍦板浘鏈濆悜璺熼殢鎵嬫満鏈濆悜
+				// 地图朝向跟随手机朝向
 				this.mapRotate = -res.direction
-				// 鏇存柊瀵艰埅鏂瑰悜鎸囧紩鍥炬爣
+				// 更新导航方向指引图标
 				this.updateNavDirection()
 			})
 		},
@@ -1205,7 +1059,8 @@ export default {
 		},
 
 		resetNavHeading() {
-			// 閲嶇疆鍦板浘鏈濆悜涓烘鍖?			this.mapRotate = 0
+			// 閲嶇疆鍦板浘鏈濆悜涓烘鍖?
+			this.mapRotate = 0
 			if (this.hasRealLocation) {
 				this.centerLat = this.myLatitude
 				this.centerLng = this.myLongitude
@@ -1214,46 +1069,50 @@ export default {
 
 		updateNavDirection() {
 			if (!this.hasRealLocation || !this.endPoint) return
-			// 璁＄畻鐩爣鏂逛綅瑙掞紙鐩稿鎵嬫満鏈濆悜锛?			const bearing = this.targetBearing
+			// 璁＄畻鐩爣鏂逛綅瑙掞紙鐩稿鎵嬫満鏈濆悜锛?
+			const bearing = this.targetBearing
 			const relativeAngle = ((bearing - this.userHeading) + 360) % 360
 
-			// 鏍规嵁鐩稿瑙掑害閫夋嫨鏂瑰悜鍥炬爣鍜屾枃瀛?			if (relativeAngle >= 337.5 || relativeAngle < 22.5) {
-				this.navDirIcon = '猬?
-				this.navDirText = '鐩磋'
+			// 鏍规嵁鐩稿瑙掑害閫夋嫨鏂瑰悜鍥炬爣鍜屾枃瀛?
+			if (relativeAngle >= 337.5 || relativeAngle < 22.5) {
+				this.navDirIcon = '↑'
+				this.navDirText = '直行'
 			} else if (relativeAngle >= 22.5 && relativeAngle < 67.5) {
-				this.navDirIcon = '鈫?
-				this.navDirText = '鍙冲墠鏂?
+				this.navDirIcon = '↗'
+				this.navDirText = '右前方'
 			} else if (relativeAngle >= 67.5 && relativeAngle < 112.5) {
-				this.navDirIcon = '鉃?
-				this.navDirText = '鍙宠浆'
+				this.navDirIcon = '→'
+				this.navDirText = '右转'
 			} else if (relativeAngle >= 112.5 && relativeAngle < 157.5) {
-				this.navDirIcon = '鈫?
-				this.navDirText = '鍙冲悗鏂?
+				this.navDirIcon = '↘'
+				this.navDirText = '右后方'
 			} else if (relativeAngle >= 157.5 && relativeAngle < 202.5) {
-				this.navDirIcon = '猬?
-				this.navDirText = '鎺夊ご'
+				this.navDirIcon = '↓'
+				this.navDirText = '掉头'
 			} else if (relativeAngle >= 202.5 && relativeAngle < 247.5) {
-				this.navDirIcon = '鈫?
-				this.navDirText = '宸﹀悗鏂?
+				this.navDirIcon = '↙'
+				this.navDirText = '左后方'
 			} else if (relativeAngle >= 247.5 && relativeAngle < 292.5) {
-				this.navDirIcon = '猬?
-				this.navDirText = '宸﹁浆'
+				this.navDirIcon = '←'
+				this.navDirText = '左转'
 			} else {
-				this.navDirIcon = '鈫?
-				this.navDirText = '宸﹀墠鏂?
+				this.navDirIcon = '↖'
+				this.navDirText = '左前方'
 			}
-			// 鏂瑰悜鍙樺寲鏃惰闊虫挱鎶?			this.speakNavDirection()
+			// 鏂瑰悜鍙樺寲鏃惰闊虫挱鎶?
+			this.speakNavDirection()
 		},
 
-		// ==================== 璇煶瀵艰埅 ====================
+		// ==================== 语音导航 ====================
 		toggleVoice() {
 			this.voiceEnabled = !this.voiceEnabled
 			if (this.voiceEnabled) {
-				this.speak('瀵艰埅宸插紑鍚?)
+				this.speak('导航已开启')
 			}
 		},
 
-		// 鍒濆鍖?TTS锛堥€氳繃 webview 浣跨敤娴忚鍣?Web Speech API锛?		_initTTS() {
+		// 鍒濆鍖?TTS（通过 webview 浣跨敤娴忚鍣?Web Speech API锛?
+		_initTTS() {
 			if (this._ttsWebViewId) return
 			try {
 				const wv = plus.webview.create('', 'tts_webview', { dock: 'bottom', height: '1', width: '1' })
@@ -1273,9 +1132,9 @@ export default {
 					'</' + sc + '></body></html>'
 				wv.loadData(html)
 				this._ttsWebViewId = 'tts_webview'
-				console.log('TTS webview 宸插垱寤?)
+				console.log('已创建')
 			} catch (e) {
-				console.log('TTS webview 鍒涘缓澶辫触:', e)
+				console.log('TTS webview 创建失败:', e)
 			}
 		},
 
@@ -1284,42 +1143,44 @@ export default {
 			this.voiceCooldown = true
 			setTimeout(() => { this.voiceCooldown = false }, 5000)
 			try {
-				// APP 绔細Android 鍘熺敓 TTS锛堢敤 invoke 璋冪敤鏂规硶锛?				if (typeof plus !== 'undefined' && plus.android) {
+				// APP 端：Android 原生 TTS（用 invoke 璋冪敤鏂规硶锛?
+				if (typeof plus !== 'undefined' && plus.android) {
 					const invoke = plus.android.invoke
 					if (!this._ttsEngine) {
 						const self = this
 						try {
 							const ctx = plus.android.runtimeMainActivity().getApplicationContext()
-							// 涓嶄紶鍥炶皟锛岄伩鍏嶉樆濉炲垵濮嬪寲
+							// 不传回调，避免阻塞初始化
 							this._ttsEngine = plus.android.newObject('android.speech.tts.TextToSpeech', ctx, null)
-							console.log('TTS 寮曟搸瀵硅薄宸插垱寤?)
+							console.log('已创建')
 						} catch (e1) {
-							console.log('TTS 鍒涘缓澶辫触:', e1)
+							console.log('TTS 创建失败:', e1)
 						}
-						// 杞 + invoke(setLanguage) 鍒ゆ柇灏辩华
+						// 轮询 + invoke(setLanguage) 判断就绪
 						if (this._ttsEngine) {
 							const Locale = plus.android.importClass('java.util.Locale')
 							let count = 0
 							const check = setInterval(function() {
 								count++
 								try {
-									// 鍏堟鏌ヨ瑷€鍙敤鎬?									const avail = invoke(self._ttsEngine, 'isLanguageAvailable', Locale.getDefault())
-									console.log('TTS isLanguageAvailable:', avail, '绗? + count + '娆?)
-									// 鍐嶈缃瑷€
+									// 鍏堟鏌ヨ瑷€鍙敤鎬?
+									const avail = invoke(self._ttsEngine, 'isLanguageAvailable', Locale.getDefault())
+									console.log('TTS isLanguageAvailable:', avail, '第' + count + '次')
+									// 再设置语言
 									const r = invoke(self._ttsEngine, 'setLanguage', Locale.getDefault())
 									console.log('TTS setLanguage result:', r)
 									if (r >= 0 || avail >= 0) {
 										clearInterval(check)
 										self._ttsReady = true
-										console.log('TTS 灏辩华! 寮€濮嬫挱鎶?', text)
+										console.log('TTS 就绪! 开始播报', text)
 										invoke(self._ttsEngine, 'speak', text, 0, null)
 									} else if (count >= 5) {
 										clearInterval(check)
-										console.log('TTS 璇█涓嶆敮鎸? 浣犵殑TTS寮曟搸( Accessibility Engine)鍙兘涓嶅吋瀹规爣鍑咥PI')
-										uni.showToast({ title: '褰撳墠TTS寮曟搸涓嶅吋瀹癸紝璇峰畨瑁匞oogle TTS鎴栬椋炶璁?, icon: 'none', duration: 5000 })
+										console.log('TTS 语言不支持，你的TTS引擎(Accessibility Engine)可能不兼容标准API')
+										uni.showToast({ title: '当前TTS引擎不兼容，请安装Google TTS或讯飞语音', icon: 'none', duration: 5000 })
 									}
 								} catch (e2) {
-									console.log('TTS setLanguage 寮傚父:', e2)
+									console.log('TTS setLanguage 异常:', e2)
 									if (count >= 5) clearInterval(check)
 								}
 							}, 500)
@@ -1327,13 +1188,14 @@ export default {
 						return
 					}
 					if (this._ttsReady) {
-						console.log('TTS 鐩存帴鎾姤:', text)
+						console.log('TTS 直接播报:', text)
 						invoke(this._ttsEngine, 'speak', text, 0, null)
 						return
 					}
-					console.log('TTS 寮曟搸灏氭湭灏辩华')
+					console.log('TTS 引擎尚未就绪')
 				}
-				// H5 绔?				if (typeof window !== 'undefined' && window.speechSynthesis) {
+				// H5 绔?
+				if (typeof window !== 'undefined' && window.speechSynthesis) {
 					window.speechSynthesis.cancel()
 					const u = new SpeechSynthesisUtterance(text)
 					u.lang = 'zh-CN'
@@ -1341,31 +1203,32 @@ export default {
 					window.speechSynthesis.speak(u)
 					return
 				}
-				console.log('璇煶鎾姤锛堟枃瀛楋級:', text)
+				console.log('语音播报（文字）:', text)
 			} catch (e) {
-				console.log('璇煶鎾姤澶辫触:', e)
+				console.log('语音播报失败:', e)
 			}
 		},
 
-		// 璺熻釜褰撳墠璺锛岃绠楀埌涓嬩竴杞集鐐圭殑璺濈
+		// 跟踪当前路段，计算到下一转弯点的距离
 		updateCurrentStep() {
 			if (!this.routeSteps || this.routeSteps.length === 0) return
 			const lat = this.myLatitude
 			const lng = this.myLongitude
-			// 鎵惧埌鐢ㄦ埛褰撳墠鎵€鍦ㄧ殑璺
+			// 找到用户当前所在的路段
 			for (let i = this.currentStepIndex; i < this.routeSteps.length; i++) {
 				const step = this.routeSteps[i]
 				if (!step.points || step.points.length === 0) continue
-				// 妫€鏌ョ敤鎴锋槸鍚﹀凡缁忛€氳繃浜嗚繖涓矾娈电殑缁堢偣
+				// 检查用户是否已经通过了这个路段的终点
 				const lastPt = step.points[step.points.length - 1]
 				const distToEnd = this.calcDistance(lat, lng, lastPt.latitude, lastPt.longitude)
-				// 濡傛灉绂诲綋鍓嶈矾娈电粓鐐瑰緢杩戯紙30绫冲唴锛夛紝鍒囨崲鍒颁笅涓€璺
+				// 如果离当前路段终点很近（30米内），切换到下一路段
 				if (distToEnd < 30 && i < this.routeSteps.length - 1) {
 					this.currentStepIndex = i + 1
 					continue
 				}
-				// 鐢ㄦ埛鍦ㄥ綋鍓嶈矾娈典腑锛岃绠楀埌璺缁堢偣鐨勮窛绂?				this.currentStepIndex = i
-				// 璁＄畻鍒板綋鍓嶈矾娈电粓鐐癸紙鍗充笅涓€涓浆寮偣锛夌殑璺濈
+				// 鐢ㄦ埛鍦ㄥ綋鍓嶈矾娈典腑锛岃绠楀埌璺缁堢偣鐨勮窛绂?
+				this.currentStepIndex = i
+				// 计算到当前路段终点（即下一个转弯点）的距离
 				let distToTurn = 0
 				for (let j = i; j < this.routeSteps.length; j++) {
 					const s = this.routeSteps[j]
@@ -1377,9 +1240,11 @@ export default {
 						endPt.latitude, endPt.longitude
 					)
 				}
-				// 濡傛灉涓嶆槸鏈€鍚庝竴涓矾娈碉紝distToTurn 灏辨槸鍒颁笅涓€涓浆寮殑璺濈
-				// 濡傛灉鏄渶鍚庝竴涓矾娈碉紝灏辨槸鍒扮洰鐨勫湴鐨勮窛绂?				if (i < this.routeSteps.length - 1) {
-					// 鍒板綋鍓嶈矾娈电粓鐐圭殑璺濈 = 鍒颁笅涓€涓浆寮偣鐨勮窛绂?					const endPt = step.points[step.points.length - 1]
+				// 如果不是最后一个路段，distToTurn 就是到下一个转弯的距离
+				// 濡傛灉鏄渶鍚庝竴涓矾娈碉紝灏辨槸鍒扮洰鐨勫湴鐨勮窛绂?
+				if (i < this.routeSteps.length - 1) {
+					// 到当前路段终点的距离 = 鍒颁笅涓€涓浆寮偣鐨勮窛绂?
+					const endPt = step.points[step.points.length - 1]
 					this._distToTurn = this.calcDistance(lat, lng, endPt.latitude, endPt.longitude)
 					this._nextAction = this.routeSteps[i + 1].action || ''
 					this._nextInstruction = this.routeSteps[i + 1].instruction || ''
@@ -1394,54 +1259,54 @@ export default {
 
 		speakNavDirection() {
 			if (!this.voiceEnabled || !this.hasRealLocation || !this.endPoint) return
-			// 浼樺厛浣跨敤璺淇℃伅
+			// 优先使用路段信息
 			if (this.routeSteps && this.routeSteps.length > 0) {
 				const dist = this._distToTurn || this.routeDistance
 				const nextAction = this._nextAction || ''
 				const step = this.routeSteps[this.currentStepIndex]
 				const curAction = step ? (step.action || '') : ''
-				// 鐢熸垚鎾姤鏂囧瓧
+				// 生成播报文字
 				let text = ''
 				if (dist < 50) {
 					if (nextAction) {
-						text = `鍗冲皢${nextAction}`
+						text = `即将${nextAction}`
 					} else {
-						text = '鍗冲皢鍒拌揪鐩殑鍦?
+						text = '即将到达目的地'
 					}
 				} else if (dist < 200 && nextAction) {
-					text = `鍓嶆柟${Math.round(dist)}绫?{nextAction}`
-				} else if (curAction && curAction !== '鐩磋') {
-					// 褰撳墠璺鏈夎浆鍚戝姩浣滄椂鎾姤
+					text = `前方${Math.round(dist)}米${nextAction}`
+				} else if (curAction && curAction !== '直行') {
+					// 当前路段有转向动作时播报
 					const key = 'step_' + this.currentStepIndex
 					if (this._spokenSteps !== key) {
 						this._spokenSteps = key
-						text = step.instruction || `${curAction}锛屽墠鏂?{Math.round(step.distance)}绫砢
+						text = step.instruction || `${curAction}，前方${Math.round(step.distance)}米`
 					}
 				} else if (this.navDirText !== this.lastVoiceDir) {
-					// 娌℃湁璺淇℃伅鏃跺洖閫€鍒版柟浣嶈
+					// 没有路段信息时回退到方位角
 					const dir = this.navDirText
 					this.lastVoiceDir = dir
-					if (dir === '鐩磋') {
-						text = `鍓嶆柟${Math.round(dist)}绫崇洿琛宍
+					if (dir === '直行') {
+						text = `前方${Math.round(dist)}米直行`
 					} else {
-						text = `${dir}锛屽墠鏂?{Math.round(dist)}绫砢
+						text = `${dir}，前方${Math.round(dist)}米`
 					}
 				}
 				if (text) this.speak(text)
 				return
 			}
-			// 鍥為€€锛氫娇鐢ㄦ柟浣嶈
+			// 回退：使用方位角
 			const dir = this.navDirText
 			if (dir === this.lastVoiceDir) return
 			this.lastVoiceDir = dir
 			const dist = this.routeDistance
 			let text = ''
 			if (dist < 50) {
-				text = '鍗冲皢鍒拌揪鐩殑鍦?
-			} else if (dir === '鐩磋') {
-				text = `鍓嶆柟${Math.round(dist)}绫崇洿琛宍
+				text = '即将到达目的地'
+			} else if (dir === '直行') {
+					text = `前方${Math.round(dist)}米直行`
 			} else {
-				text = `${dir}锛屽墠鏂?{Math.round(dist)}绫砢
+					text = `${dir}，前方${Math.round(dist)}米`
 			}
 			this.speak(text)
 		}
@@ -1458,14 +1323,14 @@ export default {
 	min-height: 100vh;
 }
 
-/* 鍦板浘瀹瑰櫒 */
+/* 地图容器 */
 .map-wrapper {
 	position: relative;
 	width: 100%;
 	overflow: visible;
 }
 
-/* 鐘舵€佹爮鍗犱綅 */
+/* 状态栏占位 */
 .nav-status-bar {
 	height: var(--status-bar-height);
 	width: 100%;
@@ -1476,7 +1341,7 @@ export default {
 	background: transparent;
 }
 
-/* 鍦板浘 - 瀹介珮鐢?JS 鍔ㄦ€佽缃?*/
+/* 地图 - 宽高用 JS 动态设置 */
 .campus-map {
 	display: block;
 }
@@ -1484,7 +1349,7 @@ export default {
 	transition: none;
 }
 
-/* 瀹氫綅鎸夐挳 - cover-view 涓嶆敮鎸?backdrop-filter锛屼繚鎸佸疄鑹?*/
+/* 定位按钮 - cover-view 不支持 backdrop-filter，保持实色 */
 .map-btn {
 	position: absolute;
 	right: 32rpx;
@@ -1507,7 +1372,7 @@ export default {
 	font-size: 36rpx;
 }
 
-/* 瀹氫綅鎻愮ず */
+/* 定位提示 */
 .location-toast {
 	position: absolute;
 	top: 16rpx;
@@ -1523,7 +1388,7 @@ export default {
 	border: 1rpx solid rgba(255, 255, 255, 0.15);
 }
 
-/* 瀵艰埅鐘舵€佹爮 - 绮捐嚧娓愬彉 */
+/* 导航状态栏 - 精致渐变 */
 .nav-bar {
 	margin: 20rpx 32rpx;
 	background: linear-gradient(135deg, #5a7bff, #8b9fff);
@@ -1596,7 +1461,7 @@ export default {
 	border: 1rpx solid rgba(255, 255, 255, 0.15);
 }
 
-/* 瀵艰埅搴曢儴鎸囧紩闈㈡澘 - 纾ㄧ爞鐜荤拑 */
+/* 导航底部指引面板 - 磨砂玻璃 */
 .nav-bottom {
 	margin: 0 32rpx 20rpx;
 	background: rgba(255, 255, 255, 0.85);
@@ -1637,7 +1502,7 @@ export default {
 	color: #999;
 }
 
-/* 鎸囧崡閽堟寜閽?*/
+/* 指南针按钮 */
 .compass-btn {
 	bottom: 20rpx;
 	right: 32rpx;
@@ -1648,13 +1513,13 @@ export default {
 	transition: transform 0.3s ease;
 }
 
-/* 瀵艰埅鏃跺洖鍒拌嚜宸变綅缃寜閽?*/
+/* 导航时回到自己位置按钮 */
 .nav-locate-btn {
 	bottom: 110rpx;
 	right: 32rpx;
 }
 
-/* 鍗＄墖 - 纾ㄧ爞鐜荤拑 */
+/* 卡片 - 磨砂玻璃 */
 .card {
 	margin: 20rpx 32rpx 32rpx;
 	background: rgba(255, 255, 255, 0.85);
@@ -1708,7 +1573,7 @@ export default {
 	transform: scale(0.95);
 }
 
-/* 璺嚎 */
+/* 路线 */
 .route-modes {
 	display: flex;
 	gap: 16rpx;
@@ -1828,7 +1693,7 @@ export default {
 	font-weight: bold;
 }
 
-/* 璇︽儏寮圭獥 - 纾ㄧ爞鐜荤拑 */
+/* 详情弹窗 - 磨砂玻璃 */
 .detail-mask {
 	position: fixed;
 	top: 0;
@@ -1921,7 +1786,7 @@ export default {
 	color: #666;
 }
 
-/* 鍦扮偣閫夋嫨寮圭獥 */
+/* 地点选择弹窗 */
 .picker-title {
 	font-size: 32rpx;
 	font-weight: bold;

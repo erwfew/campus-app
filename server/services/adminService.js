@@ -183,7 +183,7 @@ async function createCourse({ name, teacherId, location, weekDay, startSection, 
  */
 async function updateCourse(id, { name, teacherId, location, status }) {
   run(`UPDATE courses SET name = COALESCE(?, name), teacher_id = COALESCE(?, teacher_id),
-    location = COALESCE(?, location), status = COALESCE(?, status), updated_at = CURRENT_TIMESTAMP
+    location = COALESCE(?, location), status = COALESCE(?, status)
     WHERE id = ?`, [name, teacherId, location, status, id]);
   return { message: '课程已更新' };
 }

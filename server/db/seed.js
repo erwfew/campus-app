@@ -3,7 +3,7 @@
  * 
  * 运行: node db/seed.js
  */
-const { initDb, getDb, all, get, count, run, saveDb, hashPassword } = require('./index');
+const { initDb, all, get, count, run, hashPassword } = require('./index');
 
 async function seed() {
   await initDb();
@@ -134,8 +134,6 @@ async function seed() {
   const adminId = get('SELECT id FROM users WHERE role = ?', ['admin']);
   run('INSERT INTO notices (title, content, author_id, scope, important) VALUES (?, ?, ?, ?, ?)',
     ['五一放假通知', '5月1日至5月5日放假，5月6日正常上课。请各学院做好假期安全工作。', adminId.id, 'school', 1]);
-
-  saveDb();
 
   console.log('[Seed] 种子数据填充完成！');
   console.log('[Seed] ━━━━━━━━━━━━━━━━━━━━━━━━━━━');

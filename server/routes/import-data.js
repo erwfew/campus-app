@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const XLSX = require('xlsx');
+const ExcelJS = require('exceljs');
 const { run, get, all, hashPassword } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
 
@@ -9,6 +9,28 @@ router.use(authenticate);
 router.use(requireRole('admin'));
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+
+/**
+ * 将 ExcelJS worksheet 转为对象数组（首行为表头）
+ */
+function sheetToJson(worksheet) {
+  const rows = [];
+  let headers = null;
+  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    const values = row.values.slice(1); // exceljs 的 row.values 索引从 1 开始
+    if (rowNumber === 1) {
+      headers = values.map(v => String(v ?? '').trim());
+      return;
+    }
+    if (!headers) return;
+    const obj = {};
+    headers.forEach((h, i) => {
+      if (h) obj[h] = values[i] !== undefined && values[i] !== null ? values[i] : '';
+    });
+    rows.push(obj);
+  });
+  return rows;
+}
 
 // POST /api/import/:type  type: teachers | students | courses
 router.post('/:type', upload.single('file'), async (req, res) => {
@@ -22,9 +44,14 @@ router.post('/:type', upload.single('file'), async (req, res) => {
       return res.status(400).json({ success: false, error: { message: '请上传 Excel 文件' } });
     }
 
-    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet);
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(req.file.buffer);
+    const sheet = workbook.worksheets[0];
+    if (!sheet) {
+      return res.status(400).json({ success: false, error: { message: 'Excel 文件为空' } });
+    }
+
+    const rows = sheetToJson(sheet);
 
     if (rows.length === 0) {
       return res.status(400).json({ success: false, error: { message: 'Excel 文件为空' } });
@@ -43,7 +70,7 @@ router.post('/:type', upload.single('file'), async (req, res) => {
 });
 
 // GET /api/import/template/:type
-router.get('/template/:type', (req, res) => {
+router.get('/template/:type', async (req, res) => {
   const type = req.params.type;
   let headers, sample;
 
@@ -60,14 +87,15 @@ router.get('/template/:type', (req, res) => {
     return res.status(400).json({ success: false, error: { message: '不支持的类型' } });
   }
 
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet([headers, sample]);
-  XLSX.utils.book_append_sheet(wb, ws, type);
-  const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  const workbook = new ExcelJS.Workbook();
+  const ws = workbook.addWorksheet(type);
+  ws.addRow(headers);
+  ws.addRow(sample);
+  const buf = await workbook.xlsx.writeBuffer();
 
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', 'attachment; filename=' + type + '_template.xlsx');
-  res.send(buf);
+  res.send(Buffer.from(buf));
 });
 
 async function importTeachers(rows) {
@@ -114,8 +142,8 @@ async function importStudents(rows) {
     if (existingUsername) { skipped++; continue; }
 
     const { hash, salt } = hashPassword(password);
-    run('INSERT INTO users (username, password_hash, salt, real_name, role, student_id, college, major, grade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [username, hash, salt, realName, 'student', studentId, college, major, grade]);
+    run('INSERT INTO users (username, password_hash, salt, real_name, role, student_id, college) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [username, hash, salt, realName, 'student', studentId, college]);
     success++;
   }
   return { success, skipped, errors, total: rows.length };

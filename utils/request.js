@@ -1,9 +1,13 @@
-﻿// API 请求封装（uni-app 环境）
+// API 请求封装（uni-app 环境）
+// BASE_URL 可通过创建项目根目录 config.js 覆盖: module.exports = { BASE_URL: 'https://...' }
+// （参考根目录 config.example.js，复制为 config.js 后修改）
 var BASE_URL = 'http://localhost:3000'
-
 try {
-  var appConfig = require('../config.js')
-  if (appConfig && appConfig.BASE_URL) BASE_URL = appConfig.BASE_URL
+  if (typeof require === 'function') {
+    // eslint-disable-next-line node/no-missing-require
+    var userConfig = require('../config.js')
+    if (userConfig && userConfig.BASE_URL) BASE_URL = userConfig.BASE_URL
+  }
 } catch (e) {}
 
 var TOKEN_KEY = 'campus_token'

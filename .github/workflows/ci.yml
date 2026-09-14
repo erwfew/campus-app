@@ -16,5 +16,16 @@ jobs:
           node-version: 20
       - name: Install dependencies
         run: cd server && npm ci
-      - name: Start server
-        run: cd server && timeout 10 node app.js || true
+      - name: Start server smoke test
+        env:
+          JWT_SECRET: ci-test-secret-not-for-production
+          NODE_ENV: production
+          PORT: 3000
+        run: |
+          cd server
+          node app.js &
+          SERVER_PID=$!
+          sleep 3
+          curl -sf http://localhost:3000/api/health || (echo "Health check failed" && kill $SERVER_PID && exit 1)
+          kill $SERVER_PID
+          echo "Server started and health check passed"

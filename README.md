@@ -36,19 +36,21 @@ campus-app/
 ## 快速开始
 
 ### 前端（HBuilderX）
-1. 用 HBuilderX 打开项目
-2. 运行 → 运行到浏览器 / 运行到小程序模拟器
+1. 复制 `config.example.js` 为 `config.js`，将 `BASE_URL` 改为你的后端地址（本地开发用默认值即可）
+2. 用 HBuilderX 打开项目
+3. 运行 → 运行到浏览器 / 运行到小程序模拟器
 
 ### 桌面端（Electron）
 ```bash
 npm install
-npm start
+npm run desktop
 ```
 
 ### 后端
 ```bash
 cd server
 npm install
+cp .env.example .env   # 修改 JWT_SECRET，并配置 AMAP_KEY
 npm start
 ```
 
@@ -85,6 +87,7 @@ npm start
 4. 设置环境变量：
    - `JWT_SECRET` — 随机字符串（自动生成）
    - `CORS_ORIGIN` — 你的前端域名（如 https://your-app.onrender.com）
+   - `AMAP_KEY` — 地图路线代理使用的高德 Key（不配置时路线规划降级为本地模拟）
 5. 部署完成
 
 ### GitHub Actions 自动部署
